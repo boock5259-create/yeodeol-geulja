@@ -708,11 +708,26 @@ const DEEP_TOPICS={
     tip:()=>'올해가 어떤 십성 해인지에 맞춰 <b>힘 줄 곳과 쉴 곳</b>을 정하세요. 무리하게 역행하지 않는 게 사주 활용의 핵심이에요.'}
 };
 
+// 지지(12) 고유 텍스처 — 해마다 지지가 한 칸씩 바뀌므로 인접 년도 문구가 절대 겹치지 않음
+const JI_TEXTURE={
+  자:'한 해 초반부터 잔잔히 시동이 걸려요.', 축:'느긋해도 꾸준히 쌓여가는 흐름이에요.',
+  인:'새로 시작하기 좋은 추진력이 도는 해예요.', 묘:'부드럽게 관계가 풀리는 결이에요.',
+  진:'스케일 큰 변화의 기운이 감돌아요.', 사:'집중력이 살아나 몰입하기 좋아요.',
+  오:'활동적이고 화끈하게 움직이는 해예요.', 미:'온화하게 마음을 나누기 좋은 결이에요.',
+  신:'재치와 기회 포착이 빛나는 흐름이에요.', 유:'디테일을 야무지게 매만지는 해예요.',
+  술:'신뢰와 의리가 힘이 되는 흐름이에요.', 해:'한 매듭을 편안히 마무리하기 좋아요.'
+};
+// 그 해 지지가 내 일지와 맺는 관계 → 해마다 다른 뉘앙스(인접 년도 복붙 방지)
+function jiRelNote(P, jiChar){
+  if(YUKHAP[P.ilji]===jiChar) return '이 해엔 관계·인연의 합(合)이 들어 유독 살가워져요.';
+  if(CHUNG[P.ilji]===jiChar) return '변화·이동수가 겹치니 큰 결정은 한 박자 늦추면 좋아요.';
+  return JI_TEXTURE[jiChar]||'';
+}
 function analyzeTopic(P, key){
   const T=DEEP_TOPICS[key]; const y0=nowYear(); const years=[];
   for(let i=0;i<5;i++){
     const yi=yearInfo(y0+i); const god=tenGodGroup(P.ilganOh, yi.gan);
-    let rate=T.rate(god), note=T.note(god);
+    let rate=T.rate(god), note=T.note(god)+' '+jiRelNote(P, yi.jiChar);
     if(T.marriageBonus && YUKHAP[P.ilji]===yi.jiChar){ rate='good'; note+=' 💍'; }
     years.push({y:yi.y, gz:yi.gz, god, rate, note});
   }
@@ -834,6 +849,20 @@ function compatibility(A,B){
   return {score,verdict,tag,reasons,relKey,relLabel};
 }
 function personaChips(P){ return OH_PERSONA[P.dominant].map(t=>`<span class="chip">${t}</span>`).join(""); }
+const OH_LACK_ADVICE={
+  목:'새 도전 앞에서 살짝 등을 떠밀어줄 사람이 곁에 있으면 훨씬 힘이 나요.',
+  화:'속마음을 겉으로 표현하는 연습을 하면 타고난 매력이 배로 살아나요.',
+  토:'가끔은 마음의 중심을 잡아줄 안정적인 루틴 하나가 큰 버팀목이 돼요.',
+  금:'맺고 끊어야 할 땐 조금 더 단호해져도 괜찮아요 — 그게 오히려 편해져요.',
+  수:'꽉 찬 일정 사이에 혼자 재충전할 여백을 챙겨야 오래 반짝여요.'
+};
+// 한 사람 성향 풀이(일간 물상 + 강한 오행 + 약한 오행 조언) — 사람마다 달라짐
+function personLong(P){
+  const m=GAN_MULSANG[P.ilgan], dom=OH_PERSONA[P.dominant];
+  let s=`${m.d}처럼 <b>${m.k[0]}</b> 면과 <b>${m.k[1]}</b> 면을 함께 지녔어요. 타고난 기운은 <b>${OH_KO[P.dominant]}(${P.dominant})</b>가 가장 강해 <b>${dom[0]}</b>·${dom[2]}인 사람이에요.`;
+  if(P.lacking!==P.dominant) s+=` 다만 <b>${OH_KO[P.lacking]}(${P.lacking})</b> 기운은 옅은 편이라 — ${OH_LACK_ADVICE[P.lacking]}`;
+  return s;
+}
 
 /* 타임라인: 2026 남은 달 중 고비/기회 */
 const MON_JI=[0,1,2,3,4,5,6,7,8,9,10,11]; // placeholder
@@ -845,12 +874,15 @@ function timeline(A,B){
     const dt=new Date(now.getFullYear(),now.getMonth()+k,1);
     const mj=JI[monthJiOf(dt.getMonth()+1)];
     const calmV=["둘만의 시간을 즐기기 좋은 달","특별한 일 없이 편안한 달","서로에게 집중하기 좋은 달","소소한 데이트가 어울리는 달","안정적으로 흐르는 달","마음이 놓이는 달"];
+    const goodV=["관계에 좋은 바람이 부는 기회의 달","서로 마음이 잘 통하는 달","함께 좋은 추억을 쌓기 좋은 달","분위기가 무르익는 설레는 달","한 걸음 가까워지기 좋은 달"];
+    const hotV=["사소한 걸로 부딪히기 쉬운 고비의 달","자존심 싸움이 나기 쉬운 달","말 한마디에 예민해질 수 있는 달","서로 지지 않으려 팽팽해지는 달"];
+    const warnV=["감정 기복 주의, 표현을 조심할 달","괜한 오해가 생기기 쉬운 달","서로 바빠 소홀해지기 쉬운 달","마음은 있는데 표현이 엇갈릴 달"];
     let kind="calm",txt=calmV[k%calmV.length];
     const hitHap=couple.some(c=>YUKHAP[c]===mj);
     const hitChung=couple.some(c=>CHUNG[c]===mj);
-    if(hitHap){kind="good";txt="관계에 좋은 바람이 부는 기회의 달";}
-    else if(hitChung){kind="hot";txt="사소한 걸로 부딪히기 쉬운 고비의 달";}
-    else if(couple.includes(mj)){kind="warn";txt="감정 기복 주의, 표현을 조심할 달";}
+    if(hitHap){kind="good";txt=goodV[k%goodV.length];}
+    else if(hitChung){kind="hot";txt=hotV[k%hotV.length];}
+    else if(couple.includes(mj)){kind="warn";txt=warnV[k%warnV.length];}
     out.push({label:`${dt.getMonth()+1}월`,txt,kind,tag:kind==="good"?"기회":kind==="hot"?"고비":kind==="warn"?"주의":"평온"});
   }
   return out;
@@ -1013,7 +1045,7 @@ function showSolo(){
       </div>
       <div class="sec">
         <h3>당신은 어떤 사람</h3>
-        <div class="para"><b>${m.n}</b> 같은 사람이에요 — ${m.d}처럼 <b>${m.k[0]}</b>·<b>${m.k[1]}</b> 기질을 타고났어요.</div>
+        <div class="para"><b>${m.n}</b> 같은 사람이에요 — ${personLong(S)}</div>
         <div class="pillars">${pills}</div>
       </div>
       ${deepMenuHTML('solo')}
@@ -1154,9 +1186,11 @@ function renderResult(a,b){
       <div class="sec">
         <h3>각자 어떤 사람</h3>
         <div class="para" style="margin-bottom:6px;color:var(--ink-dim)"><b style="color:var(--ink)">${A.name||"나"}</b>${eunneun(A.name||"나")} 이런 사람</div>
-        <div class="chiplist" style="margin-bottom:12px">${personaChips(A)}</div>
+        <div class="para">${personLong(A)}</div>
+        <div class="chiplist" style="margin:8px 0 18px">${personaChips(A)}</div>
         <div class="para" style="margin-bottom:6px;color:var(--ink-dim)"><b style="color:var(--ink)">${B.name||"상대"}</b>${eunneun(B.name||"상대")} 이런 사람</div>
-        <div class="chiplist">${personaChips(B)}</div>
+        <div class="para">${personLong(B)}</div>
+        <div class="chiplist" style="margin-top:8px">${personaChips(B)}</div>
       </div>
 
       <div class="sec">
