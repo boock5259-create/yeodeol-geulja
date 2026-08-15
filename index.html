@@ -8,6 +8,23 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.4/lunar.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- GA4: 퍼널 계측(K 측정). track()이 gtag로 자동 전달됨 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SJFSV86HWM"></script>
+<script>
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+(function(){
+  /* ⚠️ URL 해시(#c=)에 이름·생년월일시가 들어있음 → GA로 절대 보내지 않는다.
+     page_location을 해시 없는 주소로 고정(set=이후 모든 이벤트에 적용, 자동 page_view 포함). */
+  var invite = /^#c=/.test(location.hash);
+  var clean  = location.origin + location.pathname + (invite ? '?via=invite' : '');
+  gtag('set', { page_location: clean });
+  var cfg = { page_location: clean };
+  if(location.hostname==='localhost' || location.protocol==='file:' || /(^|[?&])ga_debug=1/.test(location.search)) cfg.debug_mode = true;
+  gtag('config', 'G-SJFSV86HWM', cfg);
+})();
+</script>
 <style>
   :root{
     --bg0:#0a0f24; --bg1:#131a3d; --bg2:#241a54;
