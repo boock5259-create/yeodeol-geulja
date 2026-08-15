@@ -129,6 +129,29 @@
   .fusionSec .prem-teaser, .fusionSec > .para{animation:riseIn .5s .55s ease both}
   .fusionSec .premium{animation:riseIn .55s .7s ease both}
   @media (prefers-reduced-motion:reduce){.mbtirow .mbtibadge,.mbtirow .mbx,.mbtirow .mbx::after,.fusionSec .prem-teaser,.fusionSec>.para,.fusionSec .premium{animation:none}}
+  /* 결제 모달 */
+  .modal-overlay{position:fixed;inset:0;z-index:50;background:rgba(8,6,20,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;padding:0;animation:ovIn .25s ease both}
+  @keyframes ovIn{from{opacity:0}to{opacity:1}}
+  @media(min-width:520px){.modal-overlay{align-items:center;padding:20px}}
+  .modal-card{width:100%;max-width:440px;background:linear-gradient(180deg,#1c1740,#141130);border:1px solid var(--card-line);border-radius:24px 24px 0 0;box-shadow:var(--shadow);padding:24px 22px 26px;position:relative;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1) both}
+  @media(min-width:520px){.modal-card{border-radius:24px}}
+  @keyframes sheetUp{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .modal-x{position:absolute;top:16px;right:18px;color:var(--ink-faint);font-size:18px;cursor:pointer;line-height:1}
+  .pay-title{font-weight:700;font-size:17px}
+  .pay-sub{color:var(--ink-dim);font-size:13px;margin-top:4px}
+  .pay-amount{font-family:'Georgia',serif;font-size:44px;font-weight:700;margin:14px 0 4px;background:linear-gradient(180deg,#fff,var(--gold-soft));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .pay-amount span{font-size:20px;-webkit-text-fill-color:var(--gold-soft)}
+  .pay-methods{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .pay-m{padding:15px;border-radius:14px;border:none;font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
+  .pay-m:hover{filter:brightness(1.05);transform:translateY(-1px)}
+  .pay-m.kakao{background:#FEE500;color:#191600}
+  .pay-m.toss{background:#3182F6;color:#fff}
+  .pay-m.card{background:rgba(255,255,255,.08);color:var(--ink);border:1px solid var(--card-line)}
+  .pay-note{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:14px}
+  .pay-proto{margin-top:12px;font-size:11.5px;color:var(--gold-soft);background:rgba(232,195,126,.08);border:1px dashed rgba(232,195,126,.35);border-radius:12px;padding:10px 12px;line-height:1.5}
+  .pay-processing{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink)}
+  .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
   .tl{display:flex;flex-direction:column;gap:8px}
   .tlrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;border:1px solid var(--card-line);background:rgba(255,255,255,.03)}
@@ -231,6 +254,24 @@
     <section id="viewResult" class="hidden"></section>
 
     <div class="foot">여덟 글자 · prototype v0.1 — 재미로 보는 사주 궁합</div>
+  </div>
+
+  <!-- 익명 결제 모달 -->
+  <div class="modal-overlay hidden" id="payModal">
+    <div class="modal-card">
+      <div class="modal-x" onclick="closePayModal()">✕</div>
+      <div class="pay-title">심층 융합 리포트</div>
+      <div class="pay-sub">MBTI × 사주를 하나로 엮은 4챕터 전체</div>
+      <div class="pay-amount">990<span>원</span></div>
+      <div class="pay-methods" id="payMethods">
+        <button class="pay-m kakao" onclick="doPay('카카오페이')">카카오페이로 결제</button>
+        <button class="pay-m toss" onclick="doPay('토스페이')">토스페이로 결제</button>
+        <button class="pay-m card" onclick="doPay('카드')">신용·체크카드</button>
+      </div>
+      <div class="pay-note">로그인 없이 바로 결제 · 결과는 이 브라우저에서 바로 열려요</div>
+      <div class="pay-processing hidden" id="payProcessing"><div class="spinner"></div><div id="payStatus">결제 진행 중…</div></div>
+      <div class="pay-proto">⚠️ 프로토타입 — 실제로 결제되지 않습니다. 실서비스에선 토스페이먼츠·카카오페이 연동(사업자등록 필요)으로 대체됩니다.</div>
+    </div>
   </div>
 
 <script>
@@ -373,7 +414,7 @@ function fusionReport(A,B,comp){
     {h:"오래가려면", body:
       (bothF?`감정이 상했을 땐 그날 안에 짧게라도 풀기 — 미루면 눈덩이처럼 커져요.`:
        bothT?`가끔은 "논리 말고 그냥 서운했어"라고 감정을 그대로 말해주기.`:
-       `${A.mbti[2]==='F'?na:nb}가 감정을 말할 땐 해결책보다 공감 먼저, ${A.mbti[2]==='T'?na:nb}가 냉정해 보일 땐 무심한 게 아니라 방식이 다른 것뿐.`)}
+       `${josa(A.mbti[2]==='F'?na:nb,'iga')} 감정을 말할 땐 해결책보다 공감 먼저, ${josa(A.mbti[2]==='T'?na:nb,'iga')} 냉정해 보일 땐 무심한 게 아니라 방식이 다른 것뿐.`)}
   ];
   return {teaser, sections};
 }
@@ -430,7 +471,8 @@ function timeline(A,B){
   for(let k=0;k<6;k++){
     const dt=new Date(now.getFullYear(),now.getMonth()+k,1);
     const mj=JI[monthJiOf(dt.getMonth()+1)];
-    let kind="calm",txt="잔잔하게 흘러가는 달";
+    const calmV=["둘만의 시간을 즐기기 좋은 달","특별한 일 없이 편안한 달","서로에게 집중하기 좋은 달","소소한 데이트가 어울리는 달","안정적으로 흐르는 달","마음이 놓이는 달"];
+    let kind="calm",txt=calmV[k%calmV.length];
     const hitHap=couple.some(c=>YUKHAP[c]===mj);
     const hitChung=couple.some(c=>CHUNG[c]===mj);
     if(hitHap){kind="good";txt="관계에 좋은 바람이 부는 기회의 달";}
@@ -585,7 +627,7 @@ function renderResult(a,b){
           <div class="prem-head"><span>🔒</span> 심층 융합 리포트 <span class="price">990원</span></div>
           <div class="prem-teaser"><b>${A.name||"나"}</b>${josaP(A.name||"나",'gwawa')} <b>${B.name||"상대"}</b>의 겉과 속부터, 둘이 만나면·부딪힐 때·오래가려면까지 — 사주와 성격을 하나로 엮은 4개 챕터.</div>
           <div class="prem-locked blurred" id="premLocked">${fus.sections.map(s=>`<span class="prem-chip">${s.h}</span>`).join("")}</div>
-          <button class="btn unlock sm" onclick="unlockFusion()">💛 잠금 해제하고 전체 보기</button>
+          <button class="btn unlock sm" onclick="openPayModal()">💛 990원으로 전체 리포트 보기</button>
         </div>
       </div>`:
       (A.mbti||B.mbti)?`
@@ -638,6 +680,15 @@ function animateScore(target){
   const el=document.getElementById('scoreNum'); if(!el)return;
   let n=0; const step=Math.max(1,Math.round(target/26));
   const t=setInterval(()=>{ n+=step; if(n>=target){n=target;clearInterval(t);} el.textContent=n; },26);
+}
+function openPayModal(){ const m=document.getElementById('payModal'); if(m){ m.classList.remove('hidden'); document.body.style.overflow='hidden'; } }
+function closePayModal(){ const m=document.getElementById('payModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; resetPayModal(); } }
+function resetPayModal(){ const p=document.getElementById('payProcessing'); if(p)p.classList.add('hidden'); const mm=document.getElementById('payMethods'); if(mm)mm.style.opacity=1; }
+function doPay(method){
+  const proc=document.getElementById('payProcessing'), methods=document.getElementById('payMethods'), st=document.getElementById('payStatus');
+  if(!proc)return; methods.style.opacity=.25; proc.classList.remove('hidden'); st.textContent=method+'로 결제 중…';
+  setTimeout(()=>{ st.textContent='결제 완료! 리포트를 여는 중… ✨'; },1000);
+  setTimeout(()=>{ document.getElementById('payModal').classList.add('hidden'); document.body.style.overflow=''; resetPayModal(); unlockFusion(); },1900);
 }
 function unlockFusion(){
   const fus=window._ctx&&window._ctx.fus; if(!fus)return;
