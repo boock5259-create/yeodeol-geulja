@@ -115,6 +115,20 @@
   .prem-open .prem-sec{margin-bottom:14px}
   .prem-h{font-size:13px;font-weight:700;color:var(--lav);margin-bottom:5px}
   .btn.unlock{background:linear-gradient(135deg,var(--rose),var(--gold-soft));color:#20163a}
+  /* MBTI × 사주 결합 모션 */
+  @keyframes slideL{from{opacity:0;transform:translateX(-34px) scale(.9)}to{opacity:1;transform:none}}
+  @keyframes slideR{from{opacity:0;transform:translateX(34px) scale(.9)}to{opacity:1;transform:none}}
+  @keyframes popX{0%{transform:scale(0) rotate(-90deg);opacity:0}55%{transform:scale(1.7) rotate(0)}75%{transform:scale(.85)}100%{transform:scale(1);opacity:1}}
+  @keyframes burst{0%{box-shadow:0 0 0 0 rgba(242,161,184,.55),0 0 0 0 rgba(179,157,247,.4);opacity:0}30%{opacity:1}100%{box-shadow:0 0 0 26px rgba(242,161,184,0),0 0 0 40px rgba(179,157,247,0);opacity:0}}
+  @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .mbtirow{position:relative}
+  .mbtirow .mbtibadge:first-of-type{animation:slideL .5s cubic-bezier(.2,.8,.2,1) both}
+  .mbtirow .mbtibadge:last-of-type{animation:slideR .5s cubic-bezier(.2,.8,.2,1) both}
+  .mbtirow .mbx{position:relative;animation:popX .6s .34s cubic-bezier(.2,1.4,.4,1) both}
+  .mbtirow .mbx::after{content:"";position:absolute;inset:50% auto auto 50%;width:8px;height:8px;border-radius:50%;transform:translate(-50%,-50%);animation:burst .7s .4s ease-out both}
+  .fusionSec .prem-teaser, .fusionSec > .para{animation:riseIn .5s .55s ease both}
+  .fusionSec .premium{animation:riseIn .55s .7s ease both}
+  @media (prefers-reduced-motion:reduce){.mbtirow .mbtibadge,.mbtirow .mbx,.mbtirow .mbx::after,.fusionSec .prem-teaser,.fusionSec>.para,.fusionSec .premium{animation:none}}
 
   .tl{display:flex;flex-direction:column;gap:8px}
   .tlrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;border:1px solid var(--card-line);background:rgba(255,255,255,.03)}
@@ -563,7 +577,7 @@ function renderResult(a,b){
       </div>
 
       ${fus?`
-      <div class="sec">
+      <div class="sec fusionSec">
         <h3>MBTI × 사주</h3>
         <div class="mbtirow"><span class="mbtibadge">${A.name||"나"} · ${A.mbti}</span><span class="mbx">×</span><span class="mbtibadge">${B.name||"상대"} · ${B.mbti}</span></div>
         <div class="para" style="margin-top:12px">${fus.teaser}</div>
