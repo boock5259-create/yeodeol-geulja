@@ -628,6 +628,7 @@ function fusionReport(A,B,comp){
   // 무료 티저: 사주와 MBTI가 같은 말인가 엇갈리나
   let teaser;
   if(sajuGood && (bothF||bothT)) teaser=`사주로는 서로를 살리는 궁합, MBTI도 ${bothF?'둘 다 감성(F)이라 정서적으로 깊게':'둘 다 이성(T)이라 담백하게'} 통해요 — 사주와 성격이 <b>같은 방향</b>을 가리키는 흔치 않은 짝.`;
+  else if(sajuGood) teaser=`사주로는 서로를 살리는 궁합이고, 성격은 한 명이 감성·한 명이 이성이라 <b>서로의 빈틈을 채우는</b> 조합이에요 — 다르기 때문에 오히려 잘 맞는 짝.`;
   else if(!sajuGood && (bothF)) teaser=`사주로는 살짝 긴장되는 궁합인데, MBTI는 둘 다 감성(F) — 부딪히면 <b>감정이 오래 끌 수 있어요.</b> 대신 화해도 깊죠.`;
   else teaser=`사주와 MBTI가 <b>서로 다른 이야기</b>를 해요 — 한쪽은 끌리는데 한쪽은 조심하라니, 그래서 더 알아볼 가치가 있는 조합.`;
   // 유료 섹션
@@ -885,12 +886,13 @@ function compatibility(A,B){
   else if(B.lacking===A.dominant){ score+=8; reasons.push(`<span class="hl">${B.name||"상대"}</span>의 빈 곳을 ${josa(A.name||"나",'iga')} 채워줘요.`); }
 
   score=Math.max(38,Math.min(97,Math.round(score)));
+  const vpick=arr=>arr[(score+A.ilgan*3+B.ilgan*7)%arr.length]; // 같은 점수대라도 두 사람 일간에 따라 다른 태그라인
   let verdict,tag;
-  if(score>=88){verdict="천생연분";tag="이런 인연, 흔치 않아요";}
-  else if(score>=76){verdict="찰떡 케미";tag="곁에 있으면 편안한 사이";}
-  else if(score>=64){verdict="은근 잘 맞음";tag="알아갈수록 더 좋아지는 사이";}
-  else if(score>=54){verdict="설레는 밀당";tag="다른 듯 끌리는, 심심할 틈 없는 사이";}
-  else{verdict="서로 배우는 사이";tag="노력한 만큼 깊어지는 인연";}
+  if(score>=88){verdict="천생연분";tag=vpick(["이런 인연, 흔치 않아요","서로를 위해 태어난 듯한 사이","만날 사람을 만난 거예요"]);}
+  else if(score>=76){verdict="찰떡 케미";tag=vpick(["곁에 있으면 편안한 사이","말 안 해도 척하면 척인 사이","오래 봐도 물리지 않는 사이"]);}
+  else if(score>=64){verdict="은근 잘 맞음";tag=vpick(["알아갈수록 더 좋아지는 사이","티 안 나게 잘 맞는 사이","시간이 편들어주는 사이"]);}
+  else if(score>=54){verdict="설레는 밀당";tag=vpick(["다른 듯 끌리는, 심심할 틈 없는 사이","티격태격하다 정드는 사이","밀고 당기는 재미가 있는 사이"]);}
+  else{verdict="서로 배우는 사이";tag=vpick(["노력한 만큼 깊어지는 인연","서로 다른 만큼 배울 게 많은 사이","맞춰가는 재미가 있는 사이"]);}
   return {score,verdict,tag,reasons,relKey,relLabel};
 }
 function personaChips(P){ return OH_PERSONA[P.dominant].map(t=>`<span class="chip">${t}</span>`).join(""); }
@@ -905,7 +907,7 @@ const OH_LACK_ADVICE={
 function personLong(P){
   const m=GAN_MULSANG[P.ilgan], dom=OH_PERSONA[P.dominant];
   let s=`${m.d}처럼 <b>${m.k[0]}</b> 면과 <b>${m.k[1]}</b> 면을 함께 지녔어요. 타고난 기운은 <b>${OH_KO[P.dominant]}(${P.dominant})</b>가 가장 강해 <b>${dom[0]}</b>·${dom[2]}인 사람이에요.`;
-  if(P.lacking!==P.dominant) s+=` 다만 <b>${OH_KO[P.lacking]}(${P.lacking})</b> 기운은 옅은 편이라 — ${OH_LACK_ADVICE[P.lacking]}`;
+  if(P.lacking!==P.dominant) s+=` 다만 <b>${OH_KO[P.lacking]}(${P.lacking})</b> 기운은 옅은 편이에요. ${OH_LACK_ADVICE[P.lacking]}`;
   const mt=P.mbti;
   if(MBTI_LIST.includes(mt)){
     s+=`<br><br>성격으로 보면 <b>${mt}</b> — ${MB_SOLO[mt[0]]}, ${MB_SOLO[mt[1]]} 사람이에요. 연애에선 ${MB_SOLO[mt[2]]}, ${MB_SOLO[mt[3]]} 편이죠.`;
