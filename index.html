@@ -4,10 +4,25 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>여덟 글자 · 우리 궁합</title>
+<meta name="description" content="생일 두 개면 열리는 사주 궁합. 링크를 보내면 둘이 함께 결과를 엽니다." />
+<!-- 링크 미리보기(카톡에 링크 붙여넣기 / 카카오 공유 카드 공통) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="여덟 글자" />
+<meta property="og:title" content="우리, 얼마나 잘 맞을까? 💛" />
+<meta property="og:description" content="생일 두 개면 열리는 사주 궁합 — 내 생일은 이미 넣어뒀어요. 열어서 네 생일만 넣으면 둘의 결과가 나와요." />
+<meta property="og:url" content="https://temporary-nimble-quartz-8s17kde.vercel.app/" />
+<meta property="og:image" content="https://temporary-nimble-quartz-8s17kde.vercel.app/og.png" />
+<meta property="og:image:width" content="800" />
+<meta property="og:image:height" content="400" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.4/lunar.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- 카카오 JS SDK: 카카오톡 공유(로그인·비즈앱 불필요, JS키+플랫폼 도메인 등록만) -->
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.6/kakao.min.js"
+        integrity="sha384-WAtVcQYcmTO/N+C1N+1m6Gp8qxh+3NlnP7X1U7qP6P5dQY/MsRBNTh+e1ahJrkEm"
+        crossorigin="anonymous"></script>
 <!-- GA4: 퍼널 계측(K 측정). track()이 gtag로 자동 전달됨 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-SJFSV86HWM"></script>
 <script>
@@ -707,12 +722,36 @@ function soloCard(p){
     <div class="solo-teaser">${nm}${josaP(nm,'eunneun')} <b>${OH_PERSONA[S.dominant][0]}</b> 사람이에요. <b style="color:var(--gold-soft)">그 사람과 얼마나 맞는지</b>는 링크를 보내면 둘이 함께 열려요.</div>
   </div>`;
 }
+/* ── 카카오톡 공유 (로그인·비즈앱 불필요: JS키 + 플랫폼>Web 도메인 등록만) ── */
+const KAKAO_JS_KEY='5ace97525dda48e58472a04fbcc46b3e';
+function ogImageUrl(){ return location.origin+location.pathname.replace(/[^/]*$/,'')+'og.png'; }
+function kakaoReady(){
+  try{
+    if(!window.Kakao) return false;                       // SDK 차단/오프라인
+    if(!Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
+    return Kakao.isInitialized() && !!(Kakao.Share && Kakao.Share.sendDefault);
+  }catch(e){ return false; }                              // 미등록 도메인 등
+}
 async function shareLink(){
-  track('share_click',{kind:'link'});
   const url=document.getElementById("linkField").value;
+  const nm=hon(personA&&personA.name?sanitizeName(personA.name):'', '누군가');
+  const title='우리, 얼마나 잘 맞을까? 💛';
+  const desc=nm+josaP(nm,'iga')+' 생일을 넣어뒀어요. 열어서 네 생일만 넣으면 둘의 궁합이 나와요.';
+  const useKakao=kakaoReady();
+  track('share_click',{kind: useKakao?'kakao':(navigator.share?'webshare':'copy')});
+  if(useKakao){
+    try{
+      Kakao.Share.sendDefault({
+        objectType:'feed',
+        content:{ title, description:desc, imageUrl:ogImageUrl(), link:{mobileWebUrl:url, webUrl:url} },
+        buttons:[{ title:'궁합 열어보기', link:{mobileWebUrl:url, webUrl:url} }]
+      });
+      return;
+    }catch(e){ track('share_error',{msg:String((e&&e.message)||e).slice(0,80)}); }
+  }
   const payload={title:'여덟 글자 · 우리 궁합', text:'우리 궁합 볼래? 생일만 넣으면 둘이 함께 열려요', url};
   if(navigator.share){ try{ await navigator.share(payload); return; }catch(e){ if(e && e.name==='AbortError') return; } }
-  copyLink(); alert('링크를 복사했어요! 그 사람에게 카톡으로 붙여넣어 보내세요.\n(모바일에선 공유 버튼이 카톡을 바로 띄웁니다)');
+  copyLink(); alert('링크를 복사했어요! 그 사람에게 카톡으로 붙여넣어 보내세요.');
 }
 function copyLink(){
   const f=document.getElementById("linkField"); f.select();
@@ -721,7 +760,6 @@ function copyLink(){
   const b=document.getElementById("copyBtn"); b.textContent="복사됨 ✓"; b.classList.add("done");
   setTimeout(()=>{b.textContent="복사";b.classList.remove("done");},1600);
 }
-function fakeKakao(){ copyLink(); alert("프로토타입에선 링크가 복사돼요.\n실제 버전은 여기서 카카오톡 공유창이 떠서 그 사람에게 바로 전송됩니다 💬"); }
 function previewSelf(){ // 나 혼자 테스트: A로 B도 채워 결과
   location.hash="c="+enc(personA); renderB(personA,true);
 }
