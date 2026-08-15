@@ -276,6 +276,53 @@ gtag('js', new Date());
   .hidden{display:none!important}
   .fade{animation:fade .5s ease both}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ── AI 심층 분석 카드 메뉴 ── */
+  .deep-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .beta{font-size:10.5px;font-weight:800;letter-spacing:.02em;padding:3px 9px;border-radius:20px;
+    background:linear-gradient(120deg,rgba(142,230,176,.2),rgba(179,157,247,.2));color:#8ee6b0;border:1px solid rgba(142,230,176,.35)}
+  .deepgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .deepcard{position:relative;text-align:left;cursor:pointer;border-radius:16px;padding:14px 13px 13px;
+    border:1px solid rgba(179,157,247,.28);background:linear-gradient(165deg,rgba(179,157,247,.1),rgba(125,92,246,.045));
+    display:flex;flex-direction:column;gap:3px;transition:transform .12s ease,border-color .15s ease,box-shadow .15s ease}
+  .deepcard:hover{transform:translateY(-2px);border-color:rgba(179,157,247,.55);box-shadow:0 10px 24px -14px rgba(125,92,246,.6)}
+  .deepcard:active{transform:translateY(0)}
+  .deepcard .di{font-size:22px;line-height:1}
+  .deepcard .dt{font-weight:800;font-size:14px;color:var(--ink);letter-spacing:-.01em}
+  .deepcard .ds{font-size:11.5px;color:var(--ink-faint);line-height:1.4}
+  .deepcard .dprice{margin-top:6px;font-size:11px;color:var(--ink-dim);display:flex;align-items:center;gap:6px}
+  .deepcard .dprice .strike{text-decoration:line-through;opacity:.6}
+  .deepcard .freeb{font-weight:800;color:#8ee6b0}
+  .deepcard.wide{grid-column:1/-1;flex-direction:row;align-items:center;gap:12px}
+  .deepcard.wide .di{font-size:26px}
+  .deepcard.wide .dtx{flex:1}
+  .deepcard .arrow{position:absolute;right:12px;bottom:11px;color:var(--lav);opacity:.65;font-size:14px}
+
+  /* ── 심층 리포트 모달 ── */
+  #deepModal .modal-card{max-width:440px;text-align:left;max-height:88vh;overflow-y:auto}
+  .dm-top{display:flex;align-items:center;gap:10px;padding-right:26px}
+  .dm-ic{font-size:26px}
+  .dm-title{font-weight:800;font-size:18px;letter-spacing:-.01em}
+  .dm-badge{margin-left:auto;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;background:rgba(142,230,176,.16);color:#8ee6b0}
+  .dm-lead{margin-top:12px;font-size:14px;color:var(--ink);line-height:1.6}
+  .dm-lead b{color:var(--lav)}
+  .dm-yearsh{margin-top:16px;font-size:12px;font-weight:800;color:var(--ink-faint);letter-spacing:.02em}
+  .dy{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-top:1px solid var(--card-line)}
+  .dy:first-of-type{border-top:none}
+  .dy .yr{flex:0 0 auto;text-align:center;min-width:52px}
+  .dy .yr .yy{font-weight:800;font-size:15px;color:var(--ink)}
+  .dy .yr .gz{font-size:11px;color:var(--ink-faint)}
+  .dy .yb{flex:1;font-size:13px;color:var(--ink-dim);line-height:1.5}
+  .dy .rt{flex:0 0 auto;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:20px;align-self:center}
+  .rt.good{background:rgba(142,230,176,.16);color:var(--good)}
+  .rt.ok{background:rgba(242,193,122,.16);color:var(--warn)}
+  .rt.care{background:rgba(242,154,166,.16);color:var(--hot)}
+  .dm-tip{margin-top:15px;border-radius:14px;padding:13px 14px;font-size:13px;line-height:1.55;
+    background:linear-gradient(165deg,rgba(245,196,81,.09),rgba(245,196,81,.03));border:1px solid rgba(245,196,81,.28);color:#f4e9d6}
+  .dm-tip b{color:var(--gold-soft)}
+  .dm-foot{margin-top:16px;padding-top:13px;border-top:1px dashed var(--card-line);font-size:11.5px;color:var(--ink-faint);line-height:1.55;text-align:center}
+  .dm-foot b{color:var(--lav)}
+  .prem-sec{margin-top:12px} .prem-sec .prem-h{font-weight:800;color:var(--lav);font-size:14px;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -370,6 +417,14 @@ gtag('js', new Date());
       <div class="pay-note">로그인 없이 바로 결제 · 결과는 이 브라우저에서 바로 열려요</div>
       <div class="pay-processing hidden" id="payProcessing"><div class="spinner"></div><div id="payStatus">결제 진행 중…</div></div>
       <div class="pay-proto">⚠️ 프로토타입 — 실제로 결제되지 않습니다. 실서비스에선 토스페이먼츠·카카오페이 연동(사업자등록 필요)으로 대체됩니다.</div>
+    </div>
+  </div>
+
+  <!-- 심층 분석 리포트 모달 -->
+  <div class="modal-overlay hidden" id="deepModal">
+    <div class="modal-card">
+      <div class="modal-x" onclick="closeDeep()">✕</div>
+      <div id="deepBody"></div>
     </div>
   </div>
 
@@ -558,6 +613,180 @@ function fusionReport(A,B,comp){
   ];
   return {teaser, sections};
 }
+
+/* ============================================================
+   AI 심층 분석 (세운細運·십성十星) — 지금은 무료 체험, 실서비스=AI 실시간 생성
+   ── 일간(日主) 오행 대비 그 해 천간 오행의 관계로 십성 그룹을 뽑고,
+      주제별로 좋은 해/조심할 해를 짚어준다. 재미용 근사.
+   ============================================================ */
+function tenGodGroup(dayOh, otherOh){
+  if(dayOh===otherOh) return '비겁';        // 동료·경쟁·변화
+  if(SHENG[otherOh]===dayOh) return '인성';  // 상대가 나를 生 → 귀인·공부·안정
+  if(SHENG[dayOh]===otherOh) return '식상';  // 내가 生 → 표현·매력·활동
+  if(KE[dayOh]===otherOh) return '재성';     // 내가 剋 → 재물·인연
+  return '관성';                              // 상대가 나를 剋 → 책임·직장·기회
+}
+function yearInfo(y){ const g=yearGanji(y,6,1); return {y, gan:GAN_OH[g.gan], jiChar:JI[g.ji], gz:GAN[g.gan]+JI[g.ji]}; }
+function nowYear(){ try{ return new Date().getFullYear(); }catch(e){ return 2026; } }
+
+/* 주제 정의: rate(god)→good|ok|care, note(god,이름)→설명, tip(P)→맞춤 팁, wide=큰 카드 */
+const DEEP_TOPICS={
+  /* ── 커플 ── */
+  gobaek:{scope:'couple',icon:'💘',title:'고백·시작 타이밍',sub:'언제 마음을 전하면 좋을까',
+    rate:g=>({식상:'good',재성:'good',관성:'ok',인성:'ok',비겁:'care'}[g]),
+    note:(g)=>({
+      식상:'매력이 밖으로 확 드러나는 해 — 표현할수록 통해요. 고백 최적기 💘',
+      재성:'인연·설렘이 붙는 해. 새 만남이든 다음 단계든 진도가 잘 나가요.',
+      관성:'관계가 진지해지는 해 — 가벼운 썸보다 "진짜"를 원하게 돼요.',
+      인성:'마음이 편안해지는 안정기. 서두르기보다 신뢰를 먼저 쌓기 좋아요.',
+      비겁:'경쟁·비교·삼각이 끼기 쉬운 해 — 확신을 준 뒤에 움직이세요.'}[g]),
+    tip:()=>'고백은 <b>상대가 편안할 때</b>가 8할이에요. 위 “좋은 해”의 봄·초여름(음력 2~5월)에 자연스러운 자리를 만들어 보세요.'},
+  marriage:{scope:'couple',icon:'💍',title:'결혼 시기',sub:'좋은 해와 조심할 해',
+    rate:g=>({관성:'good',재성:'good',인성:'ok',식상:'ok',비겁:'care'}[g]),
+    note:(g)=>({
+      관성:'책임·약속의 기운이 드는 해 — 결혼·동거 등 “매듭짓는 결정”에 좋아요 💍',
+      재성:'가정·재물을 꾸리는 기운. 상견례·집·현실 준비가 술술 풀려요.',
+      인성:'양가 어른·주변의 도움이 붙는 해. 준비 과정이 순탄해요.',
+      식상:'표현·이벤트가 빛나는 해 — 프러포즈·웨딩 분위기 내기 좋아요.',
+      비겁:'지출·의견 충돌이 커질 수 있는 해 — 큰 결정은 한 박자 늦추길.'}[g]),
+    marriageBonus:true,
+    tip:()=>'배우자 자리(일지)와 <b>합(合)</b>이 드는 해에 인연이 무르익어요. 위 표의 💍 표시가 그 해예요.'},
+  future:{scope:'couple',icon:'🔮',title:'이 관계의 미래',sub:'앞으로 어떻게 흘러갈까',
+    rate:g=>({인성:'good',관성:'good',재성:'ok',식상:'ok',비겁:'care'}[g]),
+    note:(g)=>({
+      인성:'서로 안정되고 깊어지는 해 — 신뢰가 한 단계 올라가요.',
+      관성:'관계가 공식화·진지해지는 해. 다음 스텝을 얘기하게 돼요.',
+      재성:'함께 뭔가를 “이루는” 해 — 여행·이사·공동목표에 좋아요.',
+      식상:'대화·표현이 활발해 즐거운 해. 권태기 탈출에 유리해요.',
+      비겁:'각자 바빠 소원해지기 쉬운 해 — 의식적으로 시간을 맞추세요.'}[g]),
+    tip:()=>'궁합은 “점수”보다 <b>고비를 어떻게 넘겼는가</b>로 깊어져요. 아래 조심할 해엔 대화 빈도를 일부러 늘려보세요.'},
+  crisis:{scope:'couple',icon:'🌊',title:'위기와 화해',sub:'언제 부딪히고 어떻게 풀까',
+    rate:g=>({비겁:'care',관성:'ok',식상:'good',재성:'ok',인성:'good'}[g]),
+    note:(g)=>({
+      비겁:'질투·비교·제3자로 흔들리기 쉬운 해 — 오해를 키우지 말고 바로 확인하세요.',
+      관성:'책임·현실 문제(돈·미래)로 부딪히기 쉬워요. 역할을 나누면 편해져요.',
+      식상:'감정 표현이 터지는 해 — 싸워도 대화로 풀려 오히려 깊어져요.',
+      재성:'현실 조율이 필요한 해. 계획을 함께 세우면 갈등이 준비로 바뀌어요.',
+      인성:'서로 감싸주는 해 — 화해와 회복이 빠릅니다.'}[g]),
+    tip:()=>'두 분은 감정이 상했을 때 <b>그날 안에 짧게라도 푸는</b> 규칙 하나면 대부분의 위기를 넘겨요.'},
+  /* ── 솔로(1인) ── */
+  career:{scope:'solo',icon:'💼',title:'취업·이직운',sub:'기회가 열리는 시기',
+    rate:g=>({관성:'good',인성:'good',식상:'ok',재성:'ok',비겁:'care'}[g]),
+    note:(g)=>({
+      관성:'직장·조직의 기운이 드는 해 — 합격·입사·자리 잡기에 좋아요 💼',
+      인성:'자격·시험·추천이 붙는 해. 서류·면접에서 귀인이 도와요.',
+      식상:'실력·포트폴리오가 빛나는 해 — 이직·프리랜스 도전에 유리.',
+      재성:'현실 성과·연봉 협상에 좋은 해. 실속을 챙기세요.',
+      비겁:'경쟁이 치열하고 마음이 붕 뜨기 쉬운 해 — 잦은 이직은 신중히.'}[g]),
+    tip:()=>'“좋은 해”에 <b>먼저 움직이세요</b>. 관성·인성 해엔 지원서를, 식상 해엔 결과물을 세상에 내미는 게 통해요.'},
+  promo:{scope:'solo',icon:'📈',title:'승진·커리어 도약',sub:'올라설 타이밍',
+    rate:g=>({관성:'good',인성:'ok',재성:'ok',식상:'good',비겁:'care'}[g]),
+    note:(g)=>({
+      관성:'책임·직급의 기운 — 승진·중요 프로젝트 리드에 최적기 📈',
+      식상:'능력을 드러내 인정받는 해. 성과가 눈에 띄어요.',
+      재성:'실적·숫자로 증명하는 해 — 평가·보상에 유리.',
+      인성:'윗선·멘토의 지지가 붙는 해. 신뢰를 쌓기 좋아요.',
+      비겁:'동료와 부딪히거나 이직 충동이 큰 해 — 티 나는 다툼은 손해예요.'}[g]),
+    tip:()=>'승진은 <b>“관성 해”의 1~2년 전부터</b> 관성 해에 평가받을 성과를 쌓아두는 사람이 가져가요.'},
+  wealth:{scope:'solo',icon:'💰',title:'재물운',sub:'돈이 들어오고 나가는 흐름',
+    rate:g=>({재성:'good',식상:'good',관성:'ok',인성:'ok',비겁:'care'}[g]),
+    note:(g)=>({
+      재성:'재물의 기운이 정면으로 드는 해 — 수입·투자·목돈에 가장 좋아요 💰',
+      식상:'“버는 힘”이 커지는 해. 부업·사업·능력 수익화에 유리.',
+      관성:'안정적 수입·직장 소득의 해. 큰 리스크보단 착실하게.',
+      인성:'배움·자격에 투자하면 나중에 돈으로 돌아오는 해.',
+      비겁:'지출·손실·빌려주기 조심 — 큰돈 결정은 한 번 더 생각하세요.'}[g]),
+    tip:()=>'비겁 해엔 <b>보증·큰 대출·지인 투자</b>를 특히 조심하세요. 재성 해에 씨를 뿌리는 게 좋아요.'},
+  overall:{scope:'solo',icon:'🌟',title:'올해 총운',sub:'전체 흐름 한눈에',wide:true,
+    rate:g=>({인성:'good',관성:'ok',재성:'good',식상:'good',비겁:'ok'}[g]),
+    note:(g)=>({
+      인성:'몸과 마음이 안정되고 귀인이 돕는 해 — 재충전·기초 다지기에 좋아요.',
+      관성:'책임과 기회가 함께 오는 해. 자리·직책에 변화가 생겨요.',
+      재성:'현실 성과의 해 — 돈·연애·결실이 눈에 보여요.',
+      식상:'표현·창작·활동이 왕성한 해. 나를 세상에 알리기 좋아요.',
+      비겁:'변화와 경쟁의 해 — 새 도전엔 좋지만 씀씀이는 관리하세요.'}[g]),
+    tip:()=>'올해가 어떤 십성 해인지에 맞춰 <b>힘 줄 곳과 쉴 곳</b>을 정하세요. 무리하게 역행하지 않는 게 사주 활용의 핵심이에요.'}
+};
+
+function analyzeTopic(P, key){
+  const T=DEEP_TOPICS[key]; const y0=nowYear(); const years=[];
+  for(let i=0;i<5;i++){
+    const yi=yearInfo(y0+i); const god=tenGodGroup(P.ilganOh, yi.gan);
+    let rate=T.rate(god), note=T.note(god);
+    if(T.marriageBonus && YUKHAP[P.ilji]===yi.jiChar){ rate='good'; note+=' 💍'; }
+    years.push({y:yi.y, gz:yi.gz, god, rate, note});
+  }
+  const best=years.find(x=>x.rate==='good')||years.find(x=>x.rate==='ok')||years[0];
+  const care=years.find(x=>x.rate==='care');
+  return {T, years, best, care};
+}
+
+/* 심층 분석 카드 그리드 */
+function deepMenuHTML(scope){
+  const keys=Object.keys(DEEP_TOPICS).filter(k=>DEEP_TOPICS[k].scope===scope);
+  const cards=keys.map(k=>{ const t=DEEP_TOPICS[k];
+    return `<button class="deepcard${t.wide?' wide':''}" onclick="openDeep('${k}')">
+      <div class="di">${t.icon}</div>
+      <div class="${t.wide?'dtx':''}">
+        <div class="dt">${t.title}</div>
+        <div class="ds">${t.sub}</div>
+      </div>
+      <div class="dprice"><span class="strike">990원</span> <span class="freeb">지금 무료</span></div>
+      <div class="arrow">›</div>
+    </button>`;
+  }).join("");
+  const fusionCard = (scope==='couple' && window._ctx && window._ctx.fus)
+    ? `<button class="deepcard wide" onclick="openDeep('fusion')">
+        <div class="di">🧬</div>
+        <div class="dtx"><div class="dt">성격 × 사주 심층 리포트</div><div class="ds">MBTI와 사주를 엮은 4챕터 (겉과 속·둘이 만나면·부딪힐 때·오래가려면)</div></div>
+        <div class="dprice"><span class="strike">990원</span> <span class="freeb">지금 무료</span></div>
+        <div class="arrow">›</div>
+      </button>` : '';
+  return `<div class="sec">
+    <h3 class="deep-h">🔮 AI 심층 분석 <span class="beta">지금 무료 체험</span></h3>
+    <div class="para" style="color:var(--ink-faint);margin-bottom:4px">궁금한 주제를 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">언제</b>가 좋은지 짚어드려요.</div>
+    <div class="deepgrid">${cards}${fusionCard}</div>
+  </div>`;
+}
+
+function openDeep(key){
+  if(key==='fusion'){ openFusionDeep(); return; }
+  const ctx=window._ctx||window._solo; if(!ctx) return;
+  const P=ctx.A||ctx.S; if(!P) return;
+  track('deep_open',{topic:key});
+  const r=analyzeTopic(P,key); const T=r.T;
+  const nm=(P.name||'당신');
+  const rateKo={good:'좋음',ok:'보통',care:'주의'};
+  const rows=r.years.map(y=>`<div class="dy">
+      <div class="yr"><div class="yy">${y.y}</div><div class="gz">${y.gz}·${y.god}</div></div>
+      <div class="yb">${y.note}</div>
+      <div class="rt ${y.rate}">${rateKo[y.rate]}</div>
+    </div>`).join("");
+  const lead = (T.scope==='couple')
+    ? `<b>${nm}</b> 기준으로 <b>${r.best.y}년</b>이 가장 열려 있어요${r.care?`, <b>${r.care.y}년</b>은 조심할 해`:''}.`
+    : `<b>${nm}</b>${eunneun(nm)} <b>${r.best.y}년</b>에 기운이 가장 열려 있어요${r.care?`, <b>${r.care.y}년</b>은 힘을 아낄 해`:''}.`;
+  document.getElementById('deepBody').innerHTML=`
+    <div class="dm-top"><span class="dm-ic">${T.icon}</span><span class="dm-title">${T.title}</span><span class="dm-badge">무료 체험</span></div>
+    <div class="dm-lead">${lead}</div>
+    <div class="dm-yearsh">📅 앞으로 5년 흐름</div>
+    ${rows}
+    <div class="dm-tip">💡 ${T.tip(P)}</div>
+    <div class="dm-foot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 당신의 사주 8글자를 실시간으로 읽어</b> 훨씬 더 깊고 개인화된 분석을 써 드려요 (예정가 990원)</div>`;
+  showDeepModal();
+}
+function openFusionDeep(){
+  const fus=window._ctx&&window._ctx.fus; if(!fus) return;
+  track('deep_open',{topic:'fusion'});
+  const secs=fus.sections.map(s=>`<div class="prem-sec"><div class="prem-h">${s.h}</div><div class="para" style="margin:0">${s.body}</div></div>`).join("");
+  document.getElementById('deepBody').innerHTML=`
+    <div class="dm-top"><span class="dm-ic">🧬</span><span class="dm-title">성격 × 사주 심층 리포트</span><span class="dm-badge">무료 체험</span></div>
+    <div class="dm-lead">${fus.teaser}</div>
+    <div style="margin-top:6px">${secs}</div>
+    <div class="dm-foot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 두 분의 MBTI×사주를 실시간으로 엮어</b> 새로 써 드려요 (예정가 990원)</div>`;
+  showDeepModal();
+}
+function showDeepModal(){ const m=document.getElementById('deepModal'); if(m){ m.classList.remove('hidden'); document.body.style.overflow='hidden'; m.querySelector('.modal-card').scrollTop=0; } }
+function closeDeep(){ const m=document.getElementById('deepModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; } }
 
 /* ============================================================
    궁합 로직 (오행 상생상극 + 지지 합/충 + 오행 보완)
@@ -769,6 +998,7 @@ function showSolo(){
   const p=readPerson("A"); if(!p) return;
   personA=p; track('solo_view',{});
   const S=saju(p); S.sex=p.sex; S.name=hon(p.name,"나");
+  window._solo={S};
   const m=GAN_MULSANG[S.ilgan];
   const arr=[S.year,S.month,S.day]; if(S.hour)arr.push(S.hour);
   const pills=arr.map((pl,i)=>`<div class="pill"><div class="g">${GAN[pl.gan]}</div><div class="g" style="font-size:16px;opacity:.85">${JI[pl.ji]}</div><div class="lab">${['년','월','일','시'][i]}주</div></div>`).join("");
@@ -786,6 +1016,7 @@ function showSolo(){
         <div class="para"><b>${m.n}</b> 같은 사람이에요 — ${m.d}처럼 <b>${m.k[0]}</b>·<b>${m.k[1]}</b> 기질을 타고났어요.</div>
         <div class="pillars">${pills}</div>
       </div>
+      ${deepMenuHTML('solo')}
       <div class="sec">
         <h3>내 캐릭터 카드</h3>
         <div class="sharecard" id="shareCard">
@@ -914,15 +1145,11 @@ function renderResult(a,b){
         <h3>MBTI × 사주</h3>
         <div class="mbtirow"><span class="mbtibadge">${A.name||"나"} · ${A.mbti}</span><span class="mbx">×</span><span class="mbtibadge">${B.name||"상대"} · ${B.mbti}</span></div>
         <div class="para" style="margin-top:12px">${fus.teaser}</div>
-        <div class="premium" id="premiumBox">
-          <div class="prem-head"><span class="lockico">🔒</span> 심층 융합 리포트 <span class="price">990원</span></div>
-          <div class="prem-teaser"><b>${A.name||"나"}</b>${josaP(A.name||"나",'gwawa')} <b>${B.name||"상대"}</b>의 겉과 속부터, 둘이 만나면·부딪힐 때·오래가려면까지 — 사주와 성격을 하나로 엮은 4개 챕터.</div>
-          <div class="prem-locked blurred" id="premLocked">${fus.sections.map(s=>`<span class="prem-chip">${s.h}</span>`).join("")}</div>
-          <button class="btn unlock sm" onclick="openPayModal()">990원으로 전체 리포트 보기</button>
-        </div>
       </div>`:
       (A.mbti||B.mbti)?`
-      <div class="sec"><div class="para" style="color:var(--ink-faint);text-align:center">둘 다 MBTI를 넣으면 <b style="color:var(--lav)">성격 × 사주 심층 융합</b>까지 볼 수 있어요 ✨</div></div>`:``}
+      <div class="sec"><div class="para" style="color:var(--ink-faint);text-align:center">둘 다 MBTI를 넣으면 <b style="color:var(--lav)">성격 × 사주 심층 융합</b> 리포트까지 열려요 ✨</div></div>`:``}
+
+      ${deepMenuHTML('couple')}
 
       <div class="sec">
         <h3>각자 어떤 사람</h3>
