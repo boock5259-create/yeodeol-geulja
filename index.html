@@ -298,6 +298,7 @@ gtag('js', new Date());
       <div class="card pad fade" style="margin-top:14px">
         <div id="formA"></div>
         <button class="btn" onclick="makeLink()">우리 궁합 링크 만들기</button>
+        <button class="btn ghost sm" onclick="showSolo()">나 혼자 사주 보기</button>
         <div class="fineprint">로그인·저장 없이 바로 · 생일은 이 브라우저에서만 계산돼요</div>
       </div>
 
@@ -762,6 +763,55 @@ function soloCard(p){
     <div class="chiplist" style="justify-content:center;margin-top:12px">${chips}</div>
     <div class="solo-teaser"><b>${GAN_MULSANG[S.ilgan].n}</b> 같은, ${GAN_MULSANG[S.ilgan].k[0]} 사람이에요. <b style="color:var(--gold-soft)">그 사람과 얼마나 맞는지</b>는 링크를 보내면 둘이 함께 열려요.</div>
   </div>`;
+}
+/* 나 혼자 사주(내 캐릭터·물상) 보기 — 커플 아님, 1인 정체성 카드 */
+function showSolo(){
+  const p=readPerson("A"); if(!p) return;
+  personA=p; track('solo_view',{});
+  const S=saju(p); S.sex=p.sex; S.name=hon(p.name,"나");
+  const m=GAN_MULSANG[S.ilgan];
+  const arr=[S.year,S.month,S.day]; if(S.hour)arr.push(S.hour);
+  const pills=arr.map((pl,i)=>`<div class="pill"><div class="g">${GAN[pl.gan]}</div><div class="g" style="font-size:16px;opacity:.85">${JI[pl.ji]}</div><div class="lab">${['년','월','일','시'][i]}주</div></div>`).join("");
+  const chips=OH_PERSONA[S.dominant].map(t=>`<span class="chip">${t}</span>`).join("");
+  document.getElementById("viewResult").innerHTML=`
+    <div class="card pad fade">
+      <div style="text-align:center">
+        <div class="solo-h" style="font-size:19px">${S.name}의 여덟 글자</div>
+        <div style="display:flex;justify-content:center;margin:14px 0">${charPortrait(S,152)}</div>
+        <div class="nameline" style="justify-content:center">${ohSym(S.ilganOh)} · <b>${m.n}</b> 같은 ${sexWord(p.sex)} <span style="color:var(--ink-faint)">· ${JI_ANIMAL[JI[S.year.ji]]}띠</span></div>
+        <div class="chiplist" style="justify-content:center;margin-top:12px">${chips}</div>
+      </div>
+      <div class="sec">
+        <h3>당신은 어떤 사람</h3>
+        <div class="para"><b>${m.n}</b> 같은 사람이에요 — ${m.d}처럼 <b>${m.k[0]}</b>·<b>${m.k[1]}</b> 기질을 타고났어요.</div>
+        <div class="pillars">${pills}</div>
+      </div>
+      <div class="sec">
+        <h3>내 캐릭터 카드</h3>
+        <div class="sharecard" id="shareCard">
+          <div class="sc-stars"></div>
+          <div class="sc-in">
+            <div class="glow2"></div><div class="sc-frame"></div>
+            <div class="sc-corner tl">✦</div><div class="sc-corner tr">✦</div><div class="sc-corner bl">✦</div><div class="sc-corner br">✦</div>
+            <div class="top">✦ 여덟 글자 ✦</div>
+            <div class="nm"><b>${S.name}</b></div>
+            <div class="pair" style="margin-top:12px">${charPortrait(S,118)}</div>
+            <div class="big" style="font-size:42px;margin-top:16px">${m.n}</div>
+            <div class="vd">같은 ${sexWord(p.sex)}</div>
+            <div class="qt">${m.k[0]} · ${m.k[1]}</div>
+            <div class="brandf">✦ 나랑 궁합 볼래? · 여덟글자 ✦</div>
+          </div>
+        </div>
+        <button class="btn sm" onclick="saveCard()">카드 이미지로 저장</button>
+      </div>
+      <div class="branchcta">
+        <div class="branch-h">이제 <b>그 사람과 궁합</b>도 볼까?</div>
+        <div class="branch-sub">링크 하나 보내면 둘의 점수가 열려요</div>
+        <button class="btn violet sm" onclick="makeLink()">그 사람과 궁합 링크 만들기</button>
+      </div>
+      <div class="disc">재미로 보는 사주입니다 · 생년월일은 저장되지 않아요</div>
+    </div>`;
+  show("viewResult");
 }
 /* ── 카카오톡 공유 (로그인·비즈앱 불필요: JS키 + 플랫폼>Web 도메인 등록만) ── */
 const KAKAO_JS_KEY='5ace97525dda48e58472a04fbcc46b3e';
