@@ -103,8 +103,10 @@ gtag('js', new Date());
   .leaprow select{width:auto;flex:0 0 auto;padding:9px 12px}
   .leaprow span{font-size:12px;color:var(--gold-soft);line-height:1.4}
   .ohsym{filter:drop-shadow(0 2px 6px rgba(245,196,81,.35))}
-  .charwrap{aspect-ratio:3/4;border-radius:16px;overflow:hidden;position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(245,196,81,.25);box-shadow:0 10px 26px -10px rgba(0,0,0,.5)}
-  .charimg{width:100%;height:100%;object-fit:cover;display:block}
+  .charwrap{aspect-ratio:5/7;border-radius:16px;overflow:hidden;position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(245,196,81,.25);box-shadow:0 10px 26px -10px rgba(0,0,0,.5)}
+  .charimg{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+  .charrow .charwrap{aspect-ratio:3/5}
+  .sharecard .charwrap{aspect-ratio:1/2}
   .charfb{position:absolute;inset:0;place-items:center}
   .charrow{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:6px}
   .charcol{text-align:center}
@@ -245,15 +247,19 @@ gtag('js', new Date());
   /* share card 9:16 — 로맨틱 */
   .sharecard{aspect-ratio:9/16;border-radius:24px;overflow:hidden;position:relative;margin:6px auto 0;max-width:320px;
     background:linear-gradient(165deg,#48244f,#5a2b62 45%,#241a4e);border:1px solid rgba(255,255,255,.14);box-shadow:var(--shadow)}
-  .sc-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:26px 22px;text-align:center}
-  .sc-in .top{font-size:11px;letter-spacing:.4em;color:var(--rose);opacity:.95}
-  .sc-in .nm{margin-top:12px;font-size:16px;color:#fff}
-  .sc-in .nm b{color:#fff;font-weight:700}
+  .sc-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:22px 20px;text-align:center;z-index:1}
+  .sc-in .top{font-size:11px;letter-spacing:.38em;color:var(--gold-soft);opacity:.95;font-weight:700}
+  .sc-in .nm{margin-top:11px;font-size:16px;color:#fff}
+  .sc-in .nm b{color:#fff;font-weight:800}
   .sc-in .nm .hh{margin:0 7px}
-  .pair{margin-top:20px;display:flex;align-items:center;gap:10px}
-  .pair .orb{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;font-size:25px;
-    background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18)}
-  .pair .heart{font-size:22px;animation:beat 1.3s ease-in-out infinite}
+  .pair{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:9px;position:relative}
+  .pair::before{content:"";position:absolute;inset:-16px -6px;background:radial-gradient(52% 58% at 50% 42%,rgba(245,196,81,.24),transparent 72%);pointer-events:none}
+  .pair .heart{font-size:22px;position:relative;z-index:1;animation:beat 1.3s ease-in-out infinite}
+  .sc-stars{position:absolute;inset:0;pointer-events:none;opacity:.85;
+    background:radial-gradient(1.6px 1.6px at 18% 9%,#fff,transparent),radial-gradient(1.4px 1.4px at 82% 15%,#ffe7b4,transparent),radial-gradient(1.2px 1.2px at 31% 25%,#fff,transparent),radial-gradient(1.3px 1.3px at 70% 38%,#ffe7b4,transparent),radial-gradient(1.2px 1.2px at 12% 63%,#fff,transparent),radial-gradient(1.6px 1.6px at 90% 73%,#ffe7b4,transparent),radial-gradient(1.2px 1.2px at 50% 93%,#fff,transparent)}
+  .sc-frame{position:absolute;inset:11px;border:1px solid rgba(245,196,81,.4);border-radius:16px;pointer-events:none;z-index:1}
+  .sc-corner{position:absolute;color:var(--gold-soft);font-size:12px;opacity:.9;z-index:2;line-height:1}
+  .sc-corner.tl{top:16px;left:19px}.sc-corner.tr{top:16px;right:19px}.sc-corner.bl{bottom:16px;left:19px}.sc-corner.br{bottom:16px;right:19px}
   @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
   @media (prefers-reduced-motion:reduce){.pair .heart{animation:none}}
   .sc-in .big{margin-top:auto;font-family:inherit;letter-spacing:-.025em;font-size:64px;font-weight:700;line-height:1;
@@ -885,15 +891,18 @@ function renderResult(a,b){
       <div class="sec">
         <h3>공유 카드</h3>
         <div class="sharecard" id="shareCard">
+          <div class="sc-stars"></div>
           <div class="sc-in">
             <div class="glow2"></div>
+            <div class="sc-frame"></div>
+            <div class="sc-corner tl">✦</div><div class="sc-corner tr">✦</div><div class="sc-corner bl">✦</div><div class="sc-corner br">✦</div>
             <div class="top">✦ 여덟 글자 ✦</div>
             <div class="nm"><b>${A.name||"나"}</b><span class="hh">${goldHeart(14)}</span><b>${B.name||"상대"}</b></div>
-            <div class="pair">${charPortrait(A,78)}<div class="heart">${goldHeart(22)}</div>${charPortrait(B,78)}</div>
+            <div class="pair">${charPortrait(A,98)}<div class="heart">${goldHeart(26)}</div>${charPortrait(B,98)}</div>
             <div class="big">${comp.score}<small>점</small></div>
             <div class="vd">${comp.verdict}</div>
             <div class="qt">${comp.tag}</div>
-            <div class="brandf">사주로 보는 우리 · 여덟글자</div>
+            <div class="brandf">✦ 사주로 보는 우리 · 여덟글자 ✦</div>
           </div>
         </div>
         <button class="btn sm" onclick="saveCard()">카드 이미지로 저장</button>
