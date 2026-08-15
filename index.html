@@ -4,17 +4,19 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>여덟 글자 · 우리 궁합</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <style>
   :root{
-    --bg0:#0b0b1a; --bg1:#141232; --bg2:#1d1140;
-    --ink:#efeafc; --ink-dim:#b9b2d6; --ink-faint:#8b84ad;
-    --gold:#e8c37e; --gold-soft:#f2d9a6;
-    --rose:#f2a1b8; --lav:#b39df7; --cyan:#8fd7e6;
-    --card:rgba(255,255,255,.055); --card-line:rgba(255,255,255,.10);
-    --good:#8ee6b0; --warn:#f2c17a; --hot:#f29aa6;
-    --shadow:0 24px 60px -20px rgba(0,0,0,.7);
+    --bg0:#0a0f24; --bg1:#131a3d; --bg2:#241a54;
+    --ink:#eef1fb; --ink-dim:#b7bedd; --ink-faint:#818bb0;
+    --gold:#f5c451; --gold-soft:#ffdb7a;
+    --rose:#f4a3ba; --lav:#9d86ff; --violet:#7d5cf6; --blue:#2f7bff; --cyan:#8fd7e6;
+    --card:rgba(255,255,255,.05); --card-line:rgba(255,255,255,.11);
+    --good:#7fe3a6; --warn:#f2c17a; --hot:#f29aa6;
+    --shadow:0 26px 64px -22px rgba(0,0,0,.72);
     --r:22px;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+    font-family:'Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo',sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -38,17 +40,18 @@
   .wrap{max-width:520px;margin:0 auto;padding:26px 20px 60px;min-height:100dvh;display:flex;flex-direction:column}
   .stars{letter-spacing:.5em;color:var(--gold);font-size:12px;text-align:center;opacity:.8}
   .brand{text-align:center;margin:14px 0 2px}
-  .brand h1{font-family:'Georgia','Nanum Myeongjo',serif;font-weight:600;font-size:30px;letter-spacing:.06em;
-    background:linear-gradient(180deg,#fff, var(--gold-soft));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .brand p{color:var(--ink-faint);font-size:13px;margin-top:4px;letter-spacing:.02em}
+  .brand .mark{font-size:26px;line-height:1;margin-bottom:8px;filter:drop-shadow(0 4px 14px rgba(245,196,81,.45))}
+  .brand h1{font-weight:800;font-size:29px;letter-spacing:-.01em;
+    background:linear-gradient(180deg,#fff 40%, var(--gold-soft));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand p{color:var(--ink-faint);font-size:12.5px;margin-top:5px;letter-spacing:.04em;font-weight:500}
 
   .card{background:var(--card);border:1px solid var(--card-line);border-radius:var(--r);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--shadow)}
   .pad{padding:22px}
   .hero{margin-top:22px;padding:30px 24px;text-align:center;position:relative;overflow:hidden}
   .hero .glow{position:absolute;inset:0;background:radial-gradient(60% 60% at 50% 0%,rgba(232,195,126,.18),transparent 70%);pointer-events:none}
-  .hero h2{font-family:'Georgia',serif;font-size:26px;line-height:1.35;font-weight:600;margin-bottom:8px}
-  .hero .accent{background:linear-gradient(90deg,var(--gold-soft),var(--rose));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero h2{font-family:inherit;letter-spacing:-.03em;font-size:27px;line-height:1.32;font-weight:800;margin-bottom:9px}
+  .hero .accent{background:linear-gradient(90deg,var(--gold-soft),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
   .hero p{color:var(--ink-dim);font-size:14px}
 
   label.f{display:block;margin:16px 0 7px;font-size:13px;color:var(--ink-dim);letter-spacing:.02em}
@@ -61,12 +64,13 @@
   .hint{font-size:12px;color:var(--ink-faint);margin-top:7px}
 
   .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:22px;
-    padding:16px;border-radius:16px;border:none;cursor:pointer;font-size:16px;font-weight:700;letter-spacing:.02em;
-    color:#20163a;background:linear-gradient(135deg,var(--gold-soft),var(--gold));box-shadow:0 14px 30px -10px rgba(232,195,126,.55);transition:.18s}
-  .btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+    padding:17px;border-radius:999px;border:none;cursor:pointer;font-size:16px;font-weight:800;letter-spacing:-.01em;
+    color:#241704;background:linear-gradient(135deg,#ffe19f,var(--gold));box-shadow:0 16px 34px -12px rgba(245,196,81,.6);transition:.18s}
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
   .btn:active{transform:translateY(0)}
-  .btn.ghost{background:rgba(255,255,255,.06);color:var(--ink);box-shadow:none;border:1px solid var(--card-line);font-weight:600}
-  .btn.sm{padding:12px;font-size:14px;margin-top:12px}
+  .btn.ghost{background:rgba(255,255,255,.07);color:var(--ink);box-shadow:none;border:1px solid var(--card-line);font-weight:700}
+  .btn.violet{background:linear-gradient(135deg,var(--lav),var(--violet));color:#fff;box-shadow:0 16px 34px -12px rgba(125,92,246,.5)}
+  .btn.sm{padding:13px;font-size:14px;margin-top:12px}
 
   .who{display:flex;align-items:center;gap:10px;justify-content:center;color:var(--ink-dim);font-size:14px;margin-bottom:4px}
   .who b{color:var(--gold-soft)}
@@ -83,16 +87,16 @@
   /* result */
   .pillars{display:flex;gap:8px;justify-content:center;margin:2px 0 4px;flex-wrap:wrap}
   .pill{min-width:56px;text-align:center;padding:8px 6px;border-radius:14px;border:1px solid var(--card-line);background:rgba(255,255,255,.04)}
-  .pill .g{font-family:'Georgia',serif;font-size:20px;font-weight:700}
+  .pill .g{font-family:inherit;letter-spacing:-.025em;font-size:20px;font-weight:700}
   .pill .lab{font-size:10px;color:var(--ink-faint);margin-top:2px}
   .nameline{text-align:center;color:var(--ink-dim);font-size:13px;margin-bottom:6px}
   .nameline b{color:var(--ink)}
 
   .scoreWrap{text-align:center;margin:6px 0 2px}
-  .score{font-family:'Georgia',serif;font-size:60px;font-weight:700;line-height:1;
+  .score{font-family:inherit;letter-spacing:-.025em;font-size:60px;font-weight:700;line-height:1;
     background:linear-gradient(180deg,#fff,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
   .score small{font-size:22px;color:var(--gold-soft);-webkit-text-fill-color:var(--gold-soft)}
-  .verdict{font-family:'Georgia',serif;font-size:22px;margin-top:6px}
+  .verdict{font-family:inherit;letter-spacing:-.025em;font-size:22px;margin-top:6px}
   .tagline{color:var(--ink-dim);font-size:14px;margin-top:6px;padding:0 6px}
 
   .sec{margin-top:14px}
@@ -139,10 +143,10 @@
   .modal-x{position:absolute;top:16px;right:18px;color:var(--ink-faint);font-size:18px;cursor:pointer;line-height:1}
   .pay-title{font-weight:700;font-size:17px}
   .pay-sub{color:var(--ink-dim);font-size:13px;margin-top:4px}
-  .pay-amount{font-family:'Georgia',serif;font-size:44px;font-weight:700;margin:14px 0 4px;background:linear-gradient(180deg,#fff,var(--gold-soft));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .pay-amount{font-family:inherit;letter-spacing:-.025em;font-size:44px;font-weight:700;margin:14px 0 4px;background:linear-gradient(180deg,#fff,var(--gold-soft));-webkit-background-clip:text;background-clip:text;color:transparent}
   .pay-amount span{font-size:20px;-webkit-text-fill-color:var(--gold-soft)}
   .pay-methods{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-  .pay-m{padding:15px;border-radius:14px;border:none;font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
+  .pay-m{padding:16px;border-radius:999px;border:none;font-size:15px;font-weight:800;letter-spacing:-.01em;cursor:pointer;transition:.15s}
   .pay-m:hover{filter:brightness(1.05);transform:translateY(-1px)}
   .pay-m.kakao{background:#FEE500;color:#191600}
   .pay-m.toss{background:#3182F6;color:#fff}
@@ -177,10 +181,10 @@
   .pair .heart{font-size:22px;animation:beat 1.3s ease-in-out infinite}
   @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
   @media (prefers-reduced-motion:reduce){.pair .heart{animation:none}}
-  .sc-in .big{margin-top:auto;font-family:'Georgia',serif;font-size:64px;font-weight:700;line-height:1;
+  .sc-in .big{margin-top:auto;font-family:inherit;letter-spacing:-.025em;font-size:64px;font-weight:700;line-height:1;
     background:linear-gradient(180deg,#fff,var(--gold-soft));-webkit-background-clip:text;background-clip:text;color:transparent}
   .sc-in .big small{-webkit-text-fill-color:var(--gold-soft);font-size:23px}
-  .sc-in .vd{font-family:'Georgia',serif;font-size:24px;margin-top:8px;color:#fff}
+  .sc-in .vd{font-family:inherit;letter-spacing:-.025em;font-size:24px;margin-top:8px;color:#fff}
   .sc-in .qt{margin:10px 8px 0;font-size:13.5px;color:#f4e9f1;line-height:1.55}
   .sc-in .brandf{font-size:10.5px;color:rgba(255,255,255,.5);letter-spacing:.28em;margin-top:auto}
   .sc-in .glow2{position:absolute;inset:0;background:radial-gradient(72% 46% at 50% 8%,rgba(242,161,184,.3),transparent 70%);pointer-events:none}
@@ -197,8 +201,8 @@
   <div class="sky"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
 
   <div class="wrap">
-    <div class="stars">✦ ✦ ✦</div>
     <div class="brand">
+      <div class="mark"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#f5b423"/></linearGradient></defs><path d="M12 0l2.6 6.9L22 8l-5.3 4.5L18.8 20 12 16.2 5.2 20l2.1-7.5L2 8l7.4-1.1L12 0z" fill="url(#gm)"/></svg></div>
       <h1>여덟 글자</h1>
       <p id="brandsub">사주로 보는 우리 두 사람</p>
     </div>
