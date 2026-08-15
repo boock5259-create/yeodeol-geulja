@@ -103,6 +103,14 @@ gtag('js', new Date());
   .leaprow select{width:auto;flex:0 0 auto;padding:9px 12px}
   .leaprow span{font-size:12px;color:var(--gold-soft);line-height:1.4}
   .ohsym{filter:drop-shadow(0 2px 6px rgba(245,196,81,.35))}
+  .charwrap{aspect-ratio:3/4;border-radius:16px;overflow:hidden;position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(245,196,81,.25);box-shadow:0 10px 26px -10px rgba(0,0,0,.5)}
+  .charimg{width:100%;height:100%;object-fit:cover;display:block}
+  .charfb{position:absolute;inset:0;place-items:center}
+  .charrow{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:6px}
+  .charcol{text-align:center}
+  .charcol .cn{margin-top:8px;font-weight:800;font-size:14px;letter-spacing:-.02em}
+  .charcol .cm{font-size:11.5px;color:var(--gold-soft);margin-top:2px}
+  .charheart{align-self:center;flex:0 0 auto}
 
   .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:22px;
     padding:17px;border-radius:999px;border:none;cursor:pointer;font-size:16px;font-weight:800;letter-spacing:-.01em;
@@ -385,6 +393,12 @@ const GAN_MULSANG=[
   {n:"이슬비",  d:"촉촉한 이슬·맑은 시냇물",    k:["섬세하고 감성적인","스며들 듯 다가가는"]}  // 계수
 ];
 const sexWord=s=> s==='남'?'남자':'여자';
+/* 캐릭터(그리스신화) 이미지 매칭: 일간→물상키, +성별. 파일=char/{물상}_{남|여}.png. 없으면 오행 심볼 폴백 */
+const CHAR_KEY=["큰나무","화초","태양","촛불","큰산","텃밭흙","무쇠","보석","바다","이슬비"];
+function charImg(P){ return 'char/'+CHAR_KEY[P.ilgan]+'_'+(P.sex==='남'?'남':'여')+'.png'; }
+function charPortrait(P,w){ w=w||110; const s=Math.round(w*0.44);
+  return `<div class="charwrap" style="width:${w}px"><img class="charimg" src="${charImg(P)}" alt="" onerror="this.style.display='none';const fb=this.parentElement.querySelector('.charfb');if(fb)fb.style.display='grid';"><div class="charfb" style="display:none">${ohSym(P.ilganOh,s)}</div></div>`;
+}
 // 지지 육합 / 충
 const YUKHAP = {자:"축",축:"자",인:"해",해:"인",묘:"술",술:"묘",진:"유",유:"진",사:"신",신:"사",오:"미",미:"오"};
 const CHUNG  = {자:"오",오:"자",축:"미",미:"축",인:"신",신:"인",묘:"유",유:"묘",진:"술",술:"진",사:"해",해:"사"};
@@ -732,8 +746,10 @@ function soloCard(p){
   const arr=[S.year,S.month,S.day]; if(S.hour)arr.push(S.hour);
   const pills=arr.map((pl,i)=>`<div class="pill"><div class="g">${GAN[pl.gan]}</div><div class="g" style="font-size:15px;opacity:.85">${JI[pl.ji]}</div><div class="lab">${['년','월','일','시'][i]}주</div></div>`).join("");
   const chips=OH_PERSONA[S.dominant].map(t=>`<span class="chip">${t}</span>`).join("");
+  S.sex=p.sex;
   return `<div class="solo card pad">
     <div class="solo-h">${nm}의 여덟 글자</div>
+    <div style="display:flex;justify-content:center;margin:6px 0 12px">${charPortrait(S,132)}</div>
     <div class="nameline" style="justify-content:center">${ohSym(S.ilganOh)} · <b>${GAN_MULSANG[S.ilgan].n}</b> 같은 ${sexWord(p.sex)} <span style="color:var(--ink-faint)">· ${JI_ANIMAL[JI[S.year.ji]]}띠</span></div>
     <div class="pillars" style="margin-top:8px">${pills}</div>
     <div class="chiplist" style="justify-content:center;margin-top:12px">${chips}</div>
@@ -784,8 +800,8 @@ function previewSelf(){ // 나 혼자 테스트: A로 B도 채워 결과
 
 function renderB(inviter,selfTest){
   document.getElementById("inviterName").textContent=inviter.name||"그 사람";
-  try{ const S=saju(inviter); const inm=hon(inviter.name,'그 사람');
-    document.getElementById("bTeaser").innerHTML=`${inm}${josaP(inm,'eunneun')} ${ohSym(S.ilganOh)} <b>${OH_KO[S.ilganOh]}의 사람</b>`; }catch(e){}
+  try{ const S=saju(inviter); S.sex=inviter.sex; const inm=hon(inviter.name,'그 사람');
+    document.getElementById("bTeaser").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px">${charPortrait(S,96)}<div>${inm}${josaP(inm,'eunneun')} <b>${GAN_MULSANG[S.ilgan].n}</b> 같은 ${sexWord(inviter.sex)}</div></div>`; }catch(e){}
   document.getElementById("formB").innerHTML=personForm("B", selfTest?(inviter.name||""):"");
   show("viewB");
   window._inviter=inviter;
@@ -815,6 +831,12 @@ function renderResult(a,b){
         <div class="verdict">${comp.verdict} · <span style="color:var(--rose)">${comp.relLabel}</span></div>
         <div class="tagline">${comp.tag}</div>
         ${(A.sex&&B.sex)?`<div class="reltype">${A.sex!==B.sex?'이성 궁합':'동성 궁합'}</div>`:''}
+      </div>
+
+      <div class="charrow">
+        <div class="charcol">${charPortrait(A,124)}<div class="cn">${A.name||"나"}</div><div class="cm">${GAN_MULSANG[A.ilgan].n} 같은 ${sexWord(A.sex)}</div></div>
+        <div class="charheart">${goldHeart(26)}</div>
+        <div class="charcol">${charPortrait(B,124)}<div class="cn">${B.name||"상대"}</div><div class="cm">${GAN_MULSANG[B.ilgan].n} 같은 ${sexWord(B.sex)}</div></div>
       </div>
 
       <div class="sec">
@@ -867,7 +889,7 @@ function renderResult(a,b){
             <div class="glow2"></div>
             <div class="top">✦ 여덟 글자 ✦</div>
             <div class="nm"><b>${A.name||"나"}</b><span class="hh">${goldHeart(14)}</span><b>${B.name||"상대"}</b></div>
-            <div class="pair"><div class="orb">${ohSym(A.ilganOh,26)}</div><div class="heart">${goldHeart(22)}</div><div class="orb">${ohSym(B.ilganOh,26)}</div></div>
+            <div class="pair">${charPortrait(A,78)}<div class="heart">${goldHeart(22)}</div>${charPortrait(B,78)}</div>
             <div class="big">${comp.score}<small>점</small></div>
             <div class="vd">${comp.verdict}</div>
             <div class="qt">${comp.tag}</div>
