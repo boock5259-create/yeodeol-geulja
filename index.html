@@ -718,6 +718,7 @@ function readPerson(prefix){
   const mbti=document.getElementById(prefix+"_mbti").value;
   const sex=(document.getElementById(prefix+"_sex")||{}).value||"여";
   const cal=(document.getElementById(prefix+"_cal")||{}).value||"solar";
+  if(!name){ alert("이름(또는 애칭)을 넣어주세요 🙏"); return null; }
   if(!y||!mo||!d){ alert("생년월일을 골라주세요 🙏"); return null; }
   let sy=+y, sm=+mo, sd=+d;
   if(cal==='lunar'){
