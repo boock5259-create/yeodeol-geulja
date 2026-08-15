@@ -566,6 +566,45 @@ const MBTI_T={E:["밖으로 에너지를 내는","활발"],I:["안으로 에너�
   N:["가능성·큰 그림을 보는","상상"],S:["현실·디테일을 챙기는","실속"],
   T:["머리(논리)로 판단하는","이성"],F:["가슴(마음)으로 판단하는","감성"],
   J:["계획하고 매듭짓는","계획"],P:["유연하게 열어두는","즉흥"]};
+/* MBTI 4축 × 연애 서술 조각 — 모두 관형형(…는/…ㄴ)이라 사주 문장에 자연스럽게 얹힘. 사주(일간10·강약오행)×MBTI16 = 조합 수백~수천 */
+const MB_SOLO={
+  E:'사람들 속에서 반짝이고 좋아하는 티도 잘 못 숨기는',
+  I:'조용히 곁을 지키며 마음을 천천히, 대신 깊게 여는',
+  N:'눈빛·말투 같은 미묘한 신호로 마음을 읽고 “우리 사이의 의미”를 곱씹는',
+  S:'연락·기념일·행동처럼 눈에 보이는 것으로 사랑을 확인하는',
+  T:'다툴 땐 감정보다 “뭐가 문제였는지”부터 정리하려는',
+  F:'다툴 땐 옳고 그름보다 “마음이 상했을까”가 먼저 걸리는',
+  J:'데이트도 미래도 계획이 잡혀 있어야 안심하는',
+  P:'정해두기보다 그날 기분 따라 유연하게 흐르는'
+};
+/* MBTI 축별 "행동 팁"(심층 카드용) */
+const MB_MOVE={
+  E:'먼저 다가가 분위기를 만드는 게 잘 통해요',
+  I:'편안한 자리를 먼저 깔고 천천히 다가가는 게 유리해요',
+  N:'큰 그림·의미를 먼저 그려 보여주면 마음이 움직여요',
+  S:'말보다 눈에 보이는 행동·챙김으로 보여주는 게 통해요',
+  T:'근거와 계획을 함께 제시하면 신뢰를 얻어요',
+  F:'진심과 공감을 먼저 전하면 문이 열려요',
+  J:'미리 계획을 세워 제안하면 안정감을 줘요',
+  P:'여지를 남기고 부담 없이 흘러가게 두는 게 좋아요'
+};
+/* 커플 MBTI 축 조합 라인 */
+function eiPair(a,b){ const x=a[0]+b[0];
+  if(x==='EE') return '둘 다 밖으로 열린 에너지라 함께면 늘 시끌벅적 즐겁지만, 각자 충전할 시간도 필요해요.';
+  if(x==='II') return '둘 다 안으로 고이는 편이라 조용하고 편안한 데이트가 딱 맞아요 — 먼저 표현하는 쪽이 관계를 이끌어요.';
+  return '한 명은 밖으로, 한 명은 안으로 — 에너지 리듬이 달라 서로를 채워주기도, 가끔 지치게도 해요.'; }
+function nsPair(a,b){ const x=a[1]+b[1];
+  if(x==='NN') return '둘 다 의미·가능성을 곱씹는 타입이라 대화가 깊고 통하는데, 현실 디테일은 놓치기 쉬워요.';
+  if(x==='SS') return '둘 다 현실 감각이 좋아 안정적으로 굴러가지만, 가끔은 설레는 상상·이벤트도 필요해요.';
+  return '한 명은 의미를, 한 명은 현실을 봐요 — 서로의 시야를 넓혀주는 좋은 조합이에요.'; }
+function tfPair(a,b){ const x=a[2]+b[2];
+  if(x==='FF') return '둘 다 마음으로 판단해 공감은 빠르지만, 감정이 상하면 오래 끌 수 있어요 — 대신 화해도 깊죠.';
+  if(x==='TT') return '둘 다 논리로 대화해 깔끔한 대신, 서운함을 말 안 하고 쌓아둘 수 있어요.';
+  return '한 명은 머리로, 한 명은 가슴으로 — “왜 그렇게 차갑냐 / 왜 그렇게 감정적이냐”가 단골 레퍼토리예요.'; }
+function jpPair(a,b){ const x=a[3]+b[3];
+  if(x==='JJ') return '둘 다 계획형이라 방향만 맞으면 착착 굴러가고, 틀어지면 둘 다 고집이 세져요.';
+  if(x==='PP') return '둘 다 즉흥형이라 편하고 자유롭지만, 중요한 결정이 자꾸 미뤄질 수 있어요.';
+  return '계획형과 즉흥형이 만나 “미리 정하자 vs 그때 봐서”로 부딪히지만, 한쪽이 맞춰주면 균형이 잡혀요.'; }
 const EMO_OH={수:1,화:1,목:0,토:0,금:0}; // 감정 성향 오행
 // 한 사람의 겉(MBTI)·속(사주) 일치/반전
 function personFusion(P){
@@ -780,12 +819,18 @@ function openDeep(key){
   const lead = (T.scope==='couple')
     ? `<b>${nm}</b> 기준으로 <b>${r.best.y}년</b>이 가장 열려 있어요${r.care?`, <b>${r.care.y}년</b>은 조심할 해`:''}.`
     : `<b>${nm}</b>${eunneun(nm)} <b>${r.best.y}년</b>에 기운이 가장 열려 있어요${r.care?`, <b>${r.care.y}년</b>은 힘을 아낄 해`:''}.`;
+  // MBTI 결합: 주제별로 관련 축을 골라 행동 팁 개인화
+  const TOPIC_AXIS={gobaek:0,overall:0,wealth:1,future:2,crisis:2,promo:2,marriage:3,career:3};
+  let mbLine='';
+  if(MBTI_LIST.includes(P.mbti)){ const ax=TOPIC_AXIS[key]||0;
+    mbLine=`<div class="dm-tip" style="background:linear-gradient(165deg,rgba(179,157,247,.12),rgba(125,92,246,.04));border-color:rgba(179,157,247,.3)">🧭 <b style="color:var(--lav)">${P.mbti} 맞춤</b> — 성격상 ${nm}${eunneun(nm)} ${MB_MOVE[P.mbti[ax]]}.</div>`; }
   document.getElementById('deepBody').innerHTML=`
     <div class="dm-top"><span class="dm-ic">${T.icon}</span><span class="dm-title">${T.title}</span><span class="dm-badge">무료 체험</span></div>
     <div class="dm-lead">${lead}</div>
     <div class="dm-yearsh">📅 앞으로 5년 흐름</div>
     ${rows}
     <div class="dm-tip">💡 ${T.tip(P)}</div>
+    ${mbLine}
     <div class="dm-foot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 당신의 사주 8글자를 실시간으로 읽어</b> 훨씬 더 깊고 개인화된 분석을 써 드려요 (예정가 990원)</div>`;
   showDeepModal();
 }
@@ -856,11 +901,17 @@ const OH_LACK_ADVICE={
   금:'맺고 끊어야 할 땐 조금 더 단호해져도 괜찮아요 — 그게 오히려 편해져요.',
   수:'꽉 찬 일정 사이에 혼자 재충전할 여백을 챙겨야 오래 반짝여요.'
 };
-// 한 사람 성향 풀이(일간 물상 + 강한 오행 + 약한 오행 조언) — 사람마다 달라짐
+// 한 사람 성향 풀이 = 일간 물상 × 강/약 오행 × MBTI 4축 × 겉속 결합 (조합 수백 가지)
 function personLong(P){
   const m=GAN_MULSANG[P.ilgan], dom=OH_PERSONA[P.dominant];
   let s=`${m.d}처럼 <b>${m.k[0]}</b> 면과 <b>${m.k[1]}</b> 면을 함께 지녔어요. 타고난 기운은 <b>${OH_KO[P.dominant]}(${P.dominant})</b>가 가장 강해 <b>${dom[0]}</b>·${dom[2]}인 사람이에요.`;
   if(P.lacking!==P.dominant) s+=` 다만 <b>${OH_KO[P.lacking]}(${P.lacking})</b> 기운은 옅은 편이라 — ${OH_LACK_ADVICE[P.lacking]}`;
+  const mt=P.mbti;
+  if(MBTI_LIST.includes(mt)){
+    s+=`<br><br>성격으로 보면 <b>${mt}</b> — ${MB_SOLO[mt[0]]}, ${MB_SOLO[mt[1]]} 사람이에요. 연애에선 ${MB_SOLO[mt[2]]}, ${MB_SOLO[mt[3]]} 편이죠.`;
+    const pf=personFusion(P);
+    if(pf) s+=` 한 겹 더 들어가 보면 <b>${pf.verdict}</b> — ${pf.note}`;
+  }
   return s;
 }
 
@@ -1029,7 +1080,7 @@ function soloCard(p){
 function showSolo(){
   const p=readPerson("A"); if(!p) return;
   personA=p; track('solo_view',{});
-  const S=saju(p); S.sex=p.sex; S.name=hon(p.name,"나");
+  const S=saju(p); S.sex=p.sex; S.name=hon(p.name,"나"); S.mbti=p.mbti;
   window._solo={S};
   const m=GAN_MULSANG[S.ilgan];
   const arr=[S.year,S.month,S.day]; if(S.hour)arr.push(S.hour);
@@ -1177,6 +1228,8 @@ function renderResult(a,b){
         <h3>MBTI × 사주</h3>
         <div class="mbtirow"><span class="mbtibadge">${A.name||"나"} · ${A.mbti}</span><span class="mbx">×</span><span class="mbtibadge">${B.name||"상대"} · ${B.mbti}</span></div>
         <div class="para" style="margin-top:12px">${fus.teaser}</div>
+        <div class="para">${eiPair(A.mbti,B.mbti)} ${nsPair(A.mbti,B.mbti)}</div>
+        <div class="para">${tfPair(A.mbti,B.mbti)} ${jpPair(A.mbti,B.mbti)}</div>
       </div>`:
       (A.mbti||B.mbti)?`
       <div class="sec"><div class="para" style="color:var(--ink-faint);text-align:center">둘 다 MBTI를 넣으면 <b style="color:var(--lav)">성격 × 사주 심층 융합</b> 리포트까지 열려요 ✨</div></div>`:``}
