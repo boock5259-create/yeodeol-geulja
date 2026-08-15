@@ -167,6 +167,15 @@
   .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
   .fineprint{font-size:11.5px;color:var(--ink-faint);text-align:center;margin-top:12px;line-height:1.5}
+  .namecard{margin-top:14px;text-align:center}
+  .nc-h{font-weight:800;font-size:15px;letter-spacing:-.02em;color:var(--gold-soft)}
+  .nc-grid{display:flex;justify-content:center;gap:10px;margin:16px 0 6px}
+  .nc-col{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .nc-cell{width:26px;height:26px;border-radius:8px;border:1px solid rgba(245,196,81,.3);background:rgba(245,196,81,.09);display:grid;place-items:center;font-size:12px;color:var(--gold-soft);font-weight:800}
+  .nc-lab{font-size:10.5px;color:var(--ink-faint);margin-top:3px;font-weight:600}
+  .nc-cap{font-size:11.5px;color:var(--ink-faint);margin-bottom:12px}
+  .nc-body{font-size:13.5px;color:var(--ink-dim);line-height:1.7}
+  .nc-body .g{color:var(--gold-soft);font-weight:700}
   .solo{margin-bottom:16px;text-align:center;background:rgba(255,255,255,.04)}
   .solo-h{font-weight:800;font-size:17px;letter-spacing:-.02em;margin-bottom:10px}
   .solo .nameline{justify-content:center}
@@ -244,6 +253,18 @@
         <div id="formA"></div>
         <button class="btn" onclick="makeLink()">우리 궁합 링크 만들기</button>
         <div class="fineprint">로그인·저장 없이 바로 · 생일은 이 브라우저에서만 계산돼요</div>
+      </div>
+
+      <div class="card pad namecard fade">
+        <div class="nc-h">✦ 이름의 뜻 · 여덟 글자</div>
+        <div class="nc-grid">
+          <div class="nc-col"><div class="nc-cell">천</div><div class="nc-cell">지</div><div class="nc-lab">년</div></div>
+          <div class="nc-col"><div class="nc-cell">천</div><div class="nc-cell">지</div><div class="nc-lab">월</div></div>
+          <div class="nc-col"><div class="nc-cell">천</div><div class="nc-cell">지</div><div class="nc-lab">일</div></div>
+          <div class="nc-col"><div class="nc-cell">천</div><div class="nc-cell">지</div><div class="nc-lab">시</div></div>
+        </div>
+        <div class="nc-cap">네 기둥 × 각 2글자(천간·지지) = 여덟 글자</div>
+        <div class="nc-body">태어난 <b class="g">연·월·일·시</b> 네 기둥, 기둥마다 글자가 둘 — 합치면 <b class="g">여덟 글자</b>. 우리가 "내 팔자"라고 할 때 그 <b>팔자(八字)</b>가 바로 이 여덟 글자예요.</div>
       </div>
     </section>
 
