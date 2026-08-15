@@ -105,6 +105,16 @@
   .mbtirow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
   .mbtibadge{font-size:13.5px;font-weight:700;padding:8px 15px;border-radius:20px;border:1px solid rgba(179,157,247,.3);background:rgba(179,157,247,.13);color:var(--lav)}
   .mbx{color:var(--rose);font-weight:700;font-size:15px}
+  .premium{margin-top:16px;border:1px solid rgba(179,157,247,.32);border-radius:18px;
+    background:linear-gradient(180deg,rgba(179,157,247,.10),rgba(242,161,184,.05));padding:16px}
+  .prem-head{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+  .prem-head .price{margin-left:auto;font-size:12px;font-weight:700;color:#20163a;background:var(--gold-soft);padding:3px 11px;border-radius:20px}
+  .prem-teaser{color:var(--ink-dim);font-size:13.5px;line-height:1.55;margin:10px 0 12px}
+  .prem-locked.blurred{filter:blur(4px);pointer-events:none;user-select:none;opacity:.65;margin-bottom:12px}
+  .prem-chip{display:inline-block;font-size:12.5px;padding:6px 12px;margin:0 6px 6px 0;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid var(--card-line)}
+  .prem-open .prem-sec{margin-bottom:14px}
+  .prem-h{font-size:13px;font-weight:700;color:var(--lav);margin-bottom:5px}
+  .btn.unlock{background:linear-gradient(135deg,var(--rose),var(--gold-soft));color:#20163a}
 
   .tl{display:flex;flex-direction:column;gap:8px}
   .tlrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;border:1px solid var(--card-line);background:rgba(255,255,255,.03)}
@@ -275,7 +285,11 @@ function saju(p){
 }
 const gz=g=>GAN[g.gan]+JI[g.ji];
 function hasJong(s){ if(!s)return false; const c=s.charCodeAt(s.length-1); if(c<0xAC00||c>0xD7A3)return false; return (c-0xAC00)%28!==0; }
-const eunneun=n=>hasJong(n)?"은":"는";
+// 조사: 받침 유무로 자동 선택. josaP=조사만, josa=단어+조사
+const _JOSA={eunneun:["은","는"],iga:["이","가"],eulreul:["을","를"],gwawa:["과","와"]};
+function josaP(w,t){ const m=_JOSA[t]||["",""]; return hasJong(w)?m[0]:m[1]; }
+function josa(w,t){ return (w||"")+josaP(w,t); }
+const eunneun=n=>josaP(n,"eunneun");
 
 /* 보안·검증 헬퍼 (악성 입력 방어) */
 function sanitizeName(s){ return String(s==null?"":s).replace(/[<>&"'`\r\n\t\\{}]/g,'').trim().slice(0,12); }
@@ -297,6 +311,59 @@ function mbtiChem(a,b){
   return {same,line};
 }
 
+/* ── MBTI × 사주 융합 (겉=MBTI, 속=사주 오행) ── */
+const MBTI_T={E:["밖으로 에너지를 내는","활발"],I:["안으로 에너지를 모으는","차분"],
+  N:["가능성·큰 그림을 보는","상상"],S:["현실·디테일을 챙기는","실속"],
+  T:["머리(논리)로 판단하는","이성"],F:["가슴(마음)으로 판단하는","감성"],
+  J:["계획하고 매듭짓는","계획"],P:["유연하게 열어두는","즉흥"]};
+const EMO_OH={수:1,화:1,목:0,토:0,금:0}; // 감정 성향 오행
+// 한 사람의 겉(MBTI)·속(사주) 일치/반전
+function personFusion(P){
+  const m=P.mbti; if(!MBTI_LIST.includes(m)) return null;
+  const soulEmo=EMO_OH[P.ilganOh]===1;        // 사주가 감정형(수·화)인가
+  const faceEmo=m[2]==='F';                     // MBTI가 감정형인가
+  let verdict, note;
+  if(soulEmo===faceEmo){ verdict="겉과 속이 일치"; note=`드러나는 ${m[2]==='F'?'다정함':'단단함'}이 타고난 기질 그대로예요. 흔들림 없는 사람.`; }
+  else if(faceEmo && !soulEmo){ verdict="따뜻한 겉, 단단한 속"; note="겉은 다정한데 속은 의외로 냉정·현실적. 상처받아도 티 안 내는 타입."; }
+  else { verdict="쿨한 겉, 여린 속"; note="겉은 이성적인데 속은 여리고 정 많아요. 무심한 척하지만 다 담아두는 편."; }
+  return {face:`${MBTI_T[m[0]][0]}·${MBTI_T[m[2]][0]} (${m})`, soul:`${OH_KO[P.dominant]}의 기질(${OH_PERSONA[P.dominant][0]})`, verdict, note};
+}
+// 두 사람 융합 리포트 (무료 티저 + 유료 섹션)
+function fusionReport(A,B,comp){
+  const ma=A.mbti, mb=B.mbti; if(!MBTI_LIST.includes(ma)||!MBTI_LIST.includes(mb)) return null;
+  const na=A.name||"나", nb=B.name||"상대";
+  const bothF=ma[2]==='F'&&mb[2]==='F', bothT=ma[2]==='T'&&mb[2]==='T';
+  const bothI=ma[0]==='I'&&mb[0]==='I', bothE=ma[0]==='E'&&mb[0]==='E';
+  const jpGap=ma[3]!==mb[3];
+  const sajuGood=['b_to_a','a_to_b','same'].includes(comp.relKey);
+  // 무료 티저: 사주와 MBTI가 같은 말인가 엇갈리나
+  let teaser;
+  if(sajuGood && (bothF||bothT)) teaser=`사주로는 서로를 살리는 궁합, MBTI도 ${bothF?'둘 다 감성(F)이라 정서적으로 깊게':'둘 다 이성(T)이라 담백하게'} 통해요 — 사주와 성격이 <b>같은 방향</b>을 가리키는 흔치 않은 짝.`;
+  else if(!sajuGood && (bothF)) teaser=`사주로는 살짝 긴장되는 궁합인데, MBTI는 둘 다 감성(F) — 부딪히면 <b>감정이 오래 끌 수 있어요.</b> 대신 화해도 깊죠.`;
+  else teaser=`사주와 MBTI가 <b>서로 다른 이야기</b>를 해요 — 한쪽은 끌리는데 한쪽은 조심하라니, 그래서 더 알아볼 가치가 있는 조합.`;
+  // 유료 섹션
+  const pa=personFusion(A), pb=personFusion(B);
+  const sections=[
+    {h:"겉과 속", body:`<b>${na}</b> — ${pa.verdict}. ${pa.note}<br><b>${nb}</b> — ${pb.verdict}. ${pb.note}`},
+    {h:"둘이 만나면", body:
+      (bothE?`둘 다 에너지가 밖으로 향해 함께 있으면 시끌벅적 즐겁지만, 각자 혼자 충전할 시간도 필요해요. `:
+       bothI?`둘 다 안으로 고이는 편이라 편안하고 조용한 데이트가 잘 맞아요. 대신 먼저 표현하는 연습이 필요. `:
+       `한 명은 밖으로, 한 명은 안으로 — 에너지 리듬이 달라 서로 배터리를 채워주기도, 지치게도 해요. `)
+      +(bothF?`둘 다 마음으로 판단해서 공감은 빠른데, 팩트를 놓칠 수 있어요.`:
+        bothT?`둘 다 논리로 가서 대화가 깔끔한 대신, 가끔 서운함이 쌓여도 말 안 할 수 있어요.`:
+        `한 명은 머리, 한 명은 가슴 — "왜 그렇게 차갑냐 / 왜 그렇게 감정적이냐"가 단골 레퍼토리.`)},
+    {h:"부딪힐 때", body:
+      `${comp.relLabel} 관계라 근본 궁합은 ${sajuGood?'좋은 편':'노력이 필요한 편'}. `
+      +(jpGap?`계획형과 즉흥형이 섞여 "약속을 정하자 vs 그때 봐서"에서 마찰이 나요. 한쪽이 조금 맞춰주면 됩니다.`:
+        `둘 다 ${ma[3]==='J'?'계획형이라 방향만 맞으면 착착, 틀어지면 둘 다 고집':'즉흥형이라 편한데 중요한 결정이 자꾸 미뤄질 수 있어요'}.`)},
+    {h:"오래가려면", body:
+      (bothF?`감정이 상했을 땐 그날 안에 짧게라도 풀기 — 미루면 눈덩이처럼 커져요.`:
+       bothT?`가끔은 "논리 말고 그냥 서운했어"라고 감정을 그대로 말해주기.`:
+       `${A.mbti[2]==='F'?na:nb}가 감정을 말할 땐 해결책보다 공감 먼저, ${A.mbti[2]==='T'?na:nb}가 냉정해 보일 땐 무심한 게 아니라 방식이 다른 것뿐.`)}
+  ];
+  return {teaser, sections};
+}
+
 /* ============================================================
    궁합 로직 (오행 상생상극 + 지지 합/충 + 오행 보완)
    ============================================================ */
@@ -311,13 +378,13 @@ function compatibility(A,B){
   if(a===b){ score+=10; relLabel="닮은 결"; relKey="same";
     reasons.push(`두 사람 다 <span class="hl">${OH_KO[a]}(${a})</span>의 기운 — 말하지 않아도 통하는 편안함이 있어요.`); }
   else if(SHENG[b]===a){ score+=22; relLabel="채워주는 사이"; relKey="b_to_a";
-    reasons.push(`<span class="hl">${B.name||"상대"}</span>의 ${OH_KO[b]}가 <span class="hl">${A.name||"나"}</span>의 ${OH_KO[a]}를 살려줘요 — 곁에 있으면 기운이 나는 관계.`); }
+    reasons.push(`<span class="hl">${B.name||"상대"}</span>의 ${josa(OH_KO[b],'iga')} <span class="hl">${A.name||"나"}</span>의 ${josa(OH_KO[a],'eulreul')} 살려줘요 — 곁에 있으면 기운이 나는 관계.`); }
   else if(SHENG[a]===b){ score+=20; relLabel="이끌어주는 사이"; relKey="a_to_b";
-    reasons.push(`<span class="hl">${A.name||"나"}</span>가 <span class="hl">${B.name||"상대"}</span>를 자연스럽게 북돋아 줘요 — 챙겨주고 싶어지는 사이.`); }
+    reasons.push(`<span class="hl">${A.name||"나"}</span>${josaP(A.name||"나",'iga')} <span class="hl">${B.name||"상대"}</span>${josaP(B.name||"상대",'eulreul')} 자연스럽게 북돋아 줘요 — 챙겨주고 싶어지는 사이.`); }
   else if(KE[a]===b){ score+=2; relLabel="긴장과 끌림"; relKey="a_ke_b";
-    reasons.push(`${OH_KO[a]}와 ${OH_KO[b]} — 살짝 부딪히지만 그래서 <span class="hl">더 끌리는</span> 밀당의 조합.`); }
+    reasons.push(`${josa(OH_KO[a],'gwawa')} ${OH_KO[b]} — 살짝 부딪히지만 그래서 <span class="hl">더 끌리는</span> 밀당의 조합.`); }
   else if(KE[b]===a){ score+=2; relLabel="긴장과 끌림"; relKey="b_ke_a";
-    reasons.push(`${OH_KO[b]}가 ${OH_KO[a]}를 자극해요 — 편하진 않아도 <span class="hl">심심할 틈 없는</span> 사이.`); }
+    reasons.push(`${josa(OH_KO[b],'iga')} ${josa(OH_KO[a],'eulreul')} 자극해요 — 편하진 않아도 <span class="hl">심심할 틈 없는</span> 사이.`); }
 
   // 일지 합/충
   const ai=JI[A.ilji], bi=JI[B.ilji];
@@ -326,8 +393,8 @@ function compatibility(A,B){
   else if(ai===bi){ score+=6; reasons.push(`같은 <span class="hl">${JI_ANIMAL[ai]}띠 기운</span>의 자리 — 비슷한 리듬으로 살아온 사람들.`); }
 
   // 오행 보완 (내가 부족한 걸 상대가 채워주나)
-  if(A.lacking===B.dominant){ score+=8; reasons.push(`<span class="hl">${A.name||"나"}</span>에게 부족한 ${OH_KO[A.lacking]}를 ${B.name||"상대"}가 넉넉히 가졌어요 — 서로의 빈칸을 메우는 짝.`); }
-  else if(B.lacking===A.dominant){ score+=8; reasons.push(`<span class="hl">${B.name||"상대"}</span>의 빈 곳을 ${A.name||"나"}가 채워줘요.`); }
+  if(A.lacking===B.dominant){ score+=8; reasons.push(`<span class="hl">${A.name||"나"}</span>에게 부족한 ${josa(OH_KO[A.lacking],'eulreul')} ${josa(B.name||"상대",'iga')} 넉넉히 가졌어요 — 서로의 빈칸을 메우는 짝.`); }
+  else if(B.lacking===A.dominant){ score+=8; reasons.push(`<span class="hl">${B.name||"상대"}</span>의 빈 곳을 ${josa(A.name||"나",'iga')} 채워줘요.`); }
 
   score=Math.max(38,Math.min(97,Math.round(score)));
   let verdict,tag;
@@ -363,13 +430,13 @@ function timeline(A,B){
 /* 심층 풀이 템플릿 (★ 프로덕션에서 Claude API가 실시간 생성할 자리) */
 function deepReading(A,B,comp){
   const aP=OH_PERSONA[A.dominant][0], bP=OH_PERSONA[B.dominant][0];
-  const p1=`<span class="hl">${A.name||"당신"}</span>은 사주 속 ${OH_KO[A.dominant]}의 기운이 가장 강해요. ${aP}인 사람이죠. `
-        +`반면 <span class="hl">${B.name||"상대"}</span>은 ${OH_KO[B.dominant]}가 중심 — ${bP}인 편이에요.`;
+  const p1=`<span class="hl">${A.name||"당신"}</span>${josaP(A.name||"당신",'eunneun')} 사주 속 ${OH_KO[A.dominant]}의 기운이 가장 강해요. ${aP}인 사람이죠. `
+        +`반면 <span class="hl">${B.name||"상대"}</span>${josaP(B.name||"상대",'eunneun')} ${josa(OH_KO[B.dominant],'iga')} 중심 — ${bP}인 편이에요.`;
   let p2;
   switch(comp.relKey){
     case "same": p2=`둘 다 비슷한 결이라 처음부터 편했을 거예요. 대신 둘 다 물러서지 않을 땐 같은 자리를 맴돌 수 있으니, 한 명이 먼저 손 내미는 연습이 관계를 오래가게 해요.`; break;
-    case "b_to_a": p2=`${B.name||"상대"}이 곁에 있을 때 ${A.name||"당신"}이 유독 편안하고 힘이 날 거예요. 이 관계의 숨은 버팀목은 ${B.name||"상대"} 쪽. 그 마음을 당연하게 여기지 않는 게 포인트예요.`; break;
-    case "a_to_b": p2=`${A.name||"당신"}이 ${B.name||"상대"}를 챙기고 이끄는 그림이에요. 주는 기쁨이 큰 대신, 가끔은 받는 것도 허락해줘야 균형이 맞아요.`; break;
+    case "b_to_a": p2=`${josa(B.name||"상대",'iga')} 곁에 있을 때 ${josa(A.name||"당신",'iga')} 유독 편안하고 힘이 날 거예요. 이 관계의 숨은 버팀목은 ${B.name||"상대"} 쪽. 그 마음을 당연하게 여기지 않는 게 포인트예요.`; break;
+    case "a_to_b": p2=`${josa(A.name||"당신",'iga')} ${josa(B.name||"상대",'eulreul')} 챙기고 이끄는 그림이에요. 주는 기쁨이 큰 대신, 가끔은 받는 것도 허락해줘야 균형이 맞아요.`; break;
     default: p2=`서로 다른 기운이 부딪혀 처음엔 낯설지만, 그 온도차가 오히려 서로를 지루하지 않게 만들어요. "왜 저렇게 생각하지"를 "그래서 신기하다"로 바꾸면 이 조합은 강해져요.`;
   }
   const p3=`올해 두 사람에게 특히 중요한 건 <span class="hl">타이밍</span>이에요. 아래 달력에서 초록(기회)엔 한 걸음 다가가고, 붉은(고비) 달엔 말 한마디를 아끼면 큰 산은 없어요.`;
@@ -466,7 +533,8 @@ function renderResult(a,b){
   const comp=compatibility(A,B);
   const deep=deepReading(A,B,comp);
   const tl=timeline(A,B);
-  window._ctx={A,B,comp};
+  const fus=fusionReport(A,B,comp);
+  window._ctx={A,B,comp,fus};
   const pillLabels=["년","월","일","시"];
   const pillHTML=(S)=>{
     const arr=[S.year,S.month,S.day]; if(S.hour)arr.push(S.hour);
@@ -494,12 +562,20 @@ function renderResult(a,b){
         ${comp.reasons.map(r=>`<div class="para">· ${r}</div>`).join("")}
       </div>
 
-      ${(mbtiChem(A.mbti,B.mbti))?`
+      ${fus?`
       <div class="sec">
         <h3>MBTI × 사주</h3>
         <div class="mbtirow"><span class="mbtibadge">${A.name||"나"} · ${A.mbti}</span><span class="mbx">×</span><span class="mbtibadge">${B.name||"상대"} · ${B.mbti}</span></div>
-        <div class="para" style="margin-top:12px">${mbtiChem(A.mbti,B.mbti).line}. 사주로 본 <span class="hl">${comp.relLabel}</span>에 성격 유형까지 ${mbtiChem(A.mbti,B.mbti).same>=2?"서로 통하는":"서로 보완하는"} 방향이라, 둘의 케미가 더 또렷하게 읽혀요.</div>
-      </div>`:""}
+        <div class="para" style="margin-top:12px">${fus.teaser}</div>
+        <div class="premium" id="premiumBox">
+          <div class="prem-head"><span>🔒</span> 심층 융합 리포트 <span class="price">990원</span></div>
+          <div class="prem-teaser"><b>${A.name||"나"}</b>${josaP(A.name||"나",'gwawa')} <b>${B.name||"상대"}</b>의 겉과 속부터, 둘이 만나면·부딪힐 때·오래가려면까지 — 사주와 성격을 하나로 엮은 4개 챕터.</div>
+          <div class="prem-locked blurred" id="premLocked">${fus.sections.map(s=>`<span class="prem-chip">${s.h}</span>`).join("")}</div>
+          <button class="btn unlock sm" onclick="unlockFusion()">💛 잠금 해제하고 전체 보기</button>
+        </div>
+      </div>`:
+      (A.mbti||B.mbti)?`
+      <div class="sec"><div class="para" style="color:var(--ink-faint);text-align:center">둘 다 MBTI를 넣으면 <b style="color:var(--lav)">성격 × 사주 심층 융합</b>까지 볼 수 있어요 ✨</div></div>`:``}
 
       <div class="sec">
         <h3>심층 풀이</h3>
@@ -548,6 +624,14 @@ function animateScore(target){
   const el=document.getElementById('scoreNum'); if(!el)return;
   let n=0; const step=Math.max(1,Math.round(target/26));
   const t=setInterval(()=>{ n+=step; if(n>=target){n=target;clearInterval(t);} el.textContent=n; },26);
+}
+function unlockFusion(){
+  const fus=window._ctx&&window._ctx.fus; if(!fus)return;
+  const box=document.getElementById('premLocked'); if(!box)return;
+  box.className='prem-open';
+  box.innerHTML=fus.sections.map(s=>`<div class="prem-sec"><div class="prem-h">${s.h}</div><div class="para" style="margin:0">${s.body}</div></div>`).join("");
+  const btn=document.querySelector('#premiumBox .unlock');
+  if(btn) btn.outerHTML='<div class="hint" style="text-align:center;margin-top:10px">🔓 프로토타입이라 결제 없이 열었어요. 실제 버전은 990원 결제 + <b style="color:var(--lav)">AI가 두 분 사주·MBTI를 실시간으로 읽어 새로 씁니다.</b></div>';
 }
 
 /* ============================================================
