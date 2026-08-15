@@ -672,7 +672,7 @@ function nowYear(){ try{ return new Date().getFullYear(); }catch(e){ return 2026
 /* 주제 정의: rate(god)→good|ok|care, note(god,이름)→설명, tip(P)→맞춤 팁, wide=큰 카드 */
 const DEEP_TOPICS={
   /* ── 커플 ── */
-  gobaek:{scope:'couple',icon:'💘',title:'고백·시작 타이밍',sub:'언제 마음을 전하면 좋을까',
+  gobaek:{scope:'couple',loveOnly:true,icon:'💘',title:'고백·시작 타이밍',sub:'언제 마음을 전하면 좋을까',
     rate:g=>({식상:'good',재성:'good',관성:'ok',인성:'ok',비겁:'care'}[g]),
     note:(g)=>({
       식상:'매력이 밖으로 확 드러나는 해 — 표현할수록 통해요. 고백 최적기 💘',
@@ -681,7 +681,7 @@ const DEEP_TOPICS={
       인성:'마음이 편안해지는 안정기. 서두르기보다 신뢰를 먼저 쌓기 좋아요.',
       비겁:'경쟁·비교·삼각이 끼기 쉬운 해 — 확신을 준 뒤에 움직이세요.'}[g]),
     tip:()=>'고백은 <b>상대가 편안할 때</b>가 8할이에요. 위 “좋은 해”의 봄·초여름(음력 2~5월)에 자연스러운 자리를 만들어 보세요.'},
-  marriage:{scope:'couple',icon:'💍',title:'결혼 시기',sub:'좋은 해와 조심할 해',
+  marriage:{scope:'couple',loveOnly:true,icon:'💍',title:'결혼 시기',sub:'좋은 해와 조심할 해',
     rate:g=>({관성:'good',재성:'good',인성:'ok',식상:'ok',비겁:'care'}[g]),
     note:(g)=>({
       관성:'책임·약속의 기운이 드는 해 — 결혼·동거 등 “매듭짓는 결정”에 좋아요 💍',
@@ -697,13 +697,13 @@ const DEEP_TOPICS={
       인성:'서로 안정되고 깊어지는 해 — 신뢰가 한 단계 올라가요.',
       관성:'관계가 공식화·진지해지는 해. 다음 스텝을 얘기하게 돼요.',
       재성:'함께 뭔가를 “이루는” 해 — 여행·이사·공동목표에 좋아요.',
-      식상:'대화·표현이 활발해 즐거운 해. 권태기 탈출에 유리해요.',
+      식상:'대화·표현이 활발해 즐거운 해. 지루할 틈 없이 함께 웃는 시간이 많아요.',
       비겁:'각자 바빠 소원해지기 쉬운 해 — 의식적으로 시간을 맞추세요.'}[g]),
     tip:()=>'궁합은 “점수”보다 <b>고비를 어떻게 넘겼는가</b>로 깊어져요. 아래 조심할 해엔 대화 빈도를 일부러 늘려보세요.'},
   crisis:{scope:'couple',icon:'🌊',title:'위기와 화해',sub:'언제 부딪히고 어떻게 풀까',
     rate:g=>({비겁:'care',관성:'ok',식상:'good',재성:'ok',인성:'good'}[g]),
     note:(g)=>({
-      비겁:'질투·비교·제3자로 흔들리기 쉬운 해 — 오해를 키우지 말고 바로 확인하세요.',
+      비겁:'질투·비교·오해로 흔들리기 쉬운 해 — 담아두지 말고 바로 확인하세요.',
       관성:'책임·현실 문제(돈·미래)로 부딪히기 쉬워요. 역할을 나누면 편해져요.',
       식상:'감정 표현이 터지는 해 — 싸워도 대화로 풀려 오히려 깊어져요.',
       재성:'현실 조율이 필요한 해. 계획을 함께 세우면 갈등이 준비로 바뀌어요.',
@@ -777,8 +777,9 @@ function analyzeTopic(P, key){
 }
 
 /* 심층 분석 카드 그리드 */
-function deepMenuHTML(scope){
-  const keys=Object.keys(DEEP_TOPICS).filter(k=>DEEP_TOPICS[k].scope===scope);
+function deepMenuHTML(scope, rel){
+  rel=rel||'love';
+  const keys=Object.keys(DEEP_TOPICS).filter(k=>DEEP_TOPICS[k].scope===scope && !(DEEP_TOPICS[k].loveOnly && rel!=='love'));
   const cards=keys.map(k=>{ const t=DEEP_TOPICS[k];
     return `<button class="deepcard${t.wide?' wide':''}" onclick="openDeep('${k}')">
       <div class="di">${t.icon}</div>
@@ -857,7 +858,29 @@ const OH_PERSONA={
   토:["듬직하고 안정적","포용력","현실 감각"], 금:["단호하고 원칙적","깔끔한 매듭","자존심"],
   수:["지혜롭고 유연","속이 깊음","적응력"]
 };
-function compatibility(A,B){
+/* ── 관계 유형(rel)별 톤 — 연애 기본, 친구/가족/직장은 어색함 제거 ── */
+const REL_META={
+  love:  {label:'연인·썸', badge:same=>same?'동성 궁합':'이성 궁합'},
+  friend:{label:'친구',    badge:()=>'친구 궁합'},
+  family:{label:'가족',    badge:()=>'가족 궁합'},
+  work:  {label:'직장',    badge:()=>'직장 궁합'}
+};
+// 정반대(상극) 케미 라인
+const KE_LINE={ love:'눈을 못 떼는 밀당의 사이', friend:'티격태격하면서도 묘하게 붙어 다니는 사이',
+  family:'부딪히면서도 결국 서로를 챙기는 사이', work:'스타일은 정반대라도 손발은 의외로 맞는 콤비' };
+// 점수 밴드(0=최고~4)별 verdict
+const VERDICTS={
+  love:  ["천생연분","찰떡 케미","은근 잘 맞음","설레는 밀당","서로 배우는 사이"],
+  friend:["둘도 없는 단짝","찰떡 케미","은근 잘 맞음","티격태격 케미","알아가는 사이"],
+  family:["천생 가족","척하면 척","은근 잘 맞음","애증의 케미","맞춰가는 사이"],
+  work:  ["환상의 팀","합 좋은 콤비","무난한 짝","스타일 상극 콤비","맞춰가는 콤비"] };
+const TAGS={
+  love:[["이런 인연, 흔치 않아요","서로를 위해 태어난 듯한 사이","만날 사람을 만난 거예요"],["곁에 있으면 편안한 사이","말 안 해도 척하면 척인 사이","오래 봐도 물리지 않는 사이"],["알아갈수록 더 좋아지는 사이","티 안 나게 잘 맞는 사이","시간이 편들어주는 사이"],["다른 듯 끌리는, 심심할 틈 없는 사이","티격태격하다 정드는 사이","밀고 당기는 재미가 있는 사이"],["노력한 만큼 깊어지는 인연","서로 다른 만큼 배울 게 많은 사이","맞춰가는 재미가 있는 사이"]],
+  friend:[["평생 갈 단짝","말 안 해도 통하는 베프","서로의 안전지대"],["편하고 오래가는 친구","같이 있으면 편한 사이","자주 봐도 안 지겨운 사이"],["알수록 잘 맞는 친구","은근히 손발 맞는 사이","시간이 쌓아주는 우정"],["투닥대도 결국 붙어있는 사이","티격태격하다 정든 사이","밀고 당기는 재미가 있는 우정"],["다른 만큼 배우는 친구","맞춰가며 깊어지는 사이","서로 넓혀주는 사이"]],
+  family:[["천생연분 같은 가족","말 안 해도 아는 사이","서로의 뿌리"],["편안한 가족 케미","척하면 척인 사이","오래 봐도 든든한 사이"],["알수록 닮은 가족","은근히 잘 맞는 사이","시간이 이어주는 정"],["애증이 오가는 케미","투닥대도 결국 챙기는 사이","가까워서 더 부딪히는 사이"],["다른 만큼 배우는 가족","맞춰가는 사이","서로를 이해해가는 사이"]],
+  work:[["환상의 드림팀","눈빛만 봐도 아는 콤비","서로를 키워주는 파트너"],["합이 잘 맞는 콤비","척하면 척인 팀워크","오래 일해도 편한 사이"],["알수록 잘 맞는 파트너","은근히 손발 맞는 콤비","시간이 다져주는 팀워크"],["스타일 정반대 콤비","티격태격해도 결과는 내는 팀","밀당하듯 균형 맞추는 콤비"],["다른 만큼 시너지 나는 팀","맞춰가는 콤비","서로 배우는 파트너"]] };
+function compatibility(A,B,rel){
+  rel=REL_META[rel]?rel:'love';
   let score=52; const reasons=[]; let relLabel="", relKey="";
   const nA=A.name||"나", nB=B.name||"상대";
   const mA=GAN_MULSANG[A.ilgan], mB=GAN_MULSANG[B.ilgan];
@@ -873,7 +896,7 @@ function compatibility(A,B){
   else if(SHENG[a]===b){ score+=20; relLabel="이끌어주는 사이"; relKey="a_to_b";
     reasons.push(`<b>${mA.n}</b>${josaP(mA.n,'iga')} <b>${mB.n}</b>${josaP(mB.n,'eulreul')} 북돋우듯, ${nA}${josaP(nA,'iga')} ${nB}${josaP(nB,'eulreul')} 자연스럽게 이끌고 챙겨줘요.`); }
   else if(KE[a]===b || KE[b]===a){ score+=2; relLabel="긴장과 끌림"; relKey=(KE[a]===b?'a_ke_b':'b_ke_a');
-    reasons.push(`<b>${mA.n}</b>${josaP(mA.n,'gwawa')} <b>${mB.n}</b> — 정반대의 기운이라 팽팽히 맞서지만, 그래서 오히려 서로에게서 <span class="hl">눈을 못 떼는</span> 밀당의 사이예요.`); }
+    reasons.push(`<b>${mA.n}</b>${josaP(mA.n,'gwawa')} <b>${mB.n}</b> — 정반대의 기운이라 팽팽히 맞서지만, 그래서 오히려 <span class="hl">${KE_LINE[rel]}</span>예요.`); }
 
   // ③ 태어난 날의 기운(일지) 합/충 — '띠' 아님(띠=년지)
   const ai=JI[A.ilji], bi=JI[B.ilji];
@@ -886,14 +909,10 @@ function compatibility(A,B){
   else if(B.lacking===A.dominant){ score+=8; reasons.push(`<span class="hl">${B.name||"상대"}</span>의 빈 곳을 ${josa(A.name||"나",'iga')} 채워줘요.`); }
 
   score=Math.max(38,Math.min(97,Math.round(score)));
+  const band = score>=88?0 : score>=76?1 : score>=64?2 : score>=54?3 : 4;
   const vpick=arr=>arr[(score+A.ilgan*3+B.ilgan*7)%arr.length]; // 같은 점수대라도 두 사람 일간에 따라 다른 태그라인
-  let verdict,tag;
-  if(score>=88){verdict="천생연분";tag=vpick(["이런 인연, 흔치 않아요","서로를 위해 태어난 듯한 사이","만날 사람을 만난 거예요"]);}
-  else if(score>=76){verdict="찰떡 케미";tag=vpick(["곁에 있으면 편안한 사이","말 안 해도 척하면 척인 사이","오래 봐도 물리지 않는 사이"]);}
-  else if(score>=64){verdict="은근 잘 맞음";tag=vpick(["알아갈수록 더 좋아지는 사이","티 안 나게 잘 맞는 사이","시간이 편들어주는 사이"]);}
-  else if(score>=54){verdict="설레는 밀당";tag=vpick(["다른 듯 끌리는, 심심할 틈 없는 사이","티격태격하다 정드는 사이","밀고 당기는 재미가 있는 사이"]);}
-  else{verdict="서로 배우는 사이";tag=vpick(["노력한 만큼 깊어지는 인연","서로 다른 만큼 배울 게 많은 사이","맞춰가는 재미가 있는 사이"]);}
-  return {score,verdict,tag,reasons,relKey,relLabel};
+  const verdict=VERDICTS[rel][band], tag=vpick(TAGS[rel][band]);
+  return {score,verdict,tag,reasons,relKey,relLabel,rel};
 }
 function personaChips(P){ return OH_PERSONA[P.dominant].map(t=>`<span class="chip">${t}</span>`).join(""); }
 const OH_LACK_ADVICE={
@@ -960,7 +979,7 @@ function deepReading(A,B,comp){
 /* ============================================================
    UI · 라우팅 · 상태
    ============================================================ */
-function personForm(prefix,defName){
+function personForm(prefix,defName,withRel){
   const hours=['<option value="">태어난 시 모름</option>'];
   const names=["자시 (23~01)","축시 (01~03)","인시 (03~05)","묘시 (05~07)","진시 (07~09)","사시 (09~11)","오시 (11~13)","미시 (13~15)","신시 (15~17)","유시 (17~19)","술시 (19~21)","해시 (21~23)"];
   const map=[0,2,4,6,8,10,12,14,16,18,20,22];
@@ -993,7 +1012,9 @@ function personForm(prefix,defName){
     <label class="f">성별</label>
     <select id="${prefix}_sex"><option value="여">여성</option><option value="남">남성</option></select>
     <label class="f">MBTI <span style="color:var(--ink-faint)">(알면 성격까지 같이 봐요)</span></label>
-    <select id="${prefix}_mbti">${mbtiOpts}</select>`;
+    <select id="${prefix}_mbti">${mbtiOpts}</select>
+    ${withRel?`<label class="f">우리 사이는? <span style="color:var(--ink-faint)">(결과 톤이 맞춰져요)</span></label>
+    <select id="${prefix}_rel"><option value="love">💗 연인·썸</option><option value="friend">🤝 친구</option><option value="family">👨‍👩‍👧 가족</option><option value="work">💼 직장</option></select>`:''}`;
 }
 function setCal(prefix,c){
   const calEl=document.getElementById(prefix+'_cal'); if(!calEl) return;
@@ -1046,7 +1067,8 @@ function readPerson(prefix){
     if(+d>daysInMonth(+y,+mo)){ alert("그 달엔 없는 날짜예요 🙏 다시 골라주세요."); return null; }
   }
   const birth=`${sy}-${String(sm).padStart(2,'0')}-${String(sd).padStart(2,'0')}`;
-  return {name,birth,hour,mbti:MBTI_LIST.includes(mbti)?mbti:"",sex};
+  const rel=(document.getElementById(prefix+"_rel")||{}).value||"love";
+  return {name,birth,hour,mbti:MBTI_LIST.includes(mbti)?mbti:"",sex,rel};
 }
 function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
 function dec(s){ try{ return JSON.parse(decodeURIComponent(escape(atob(s)))); }catch(e){ return null; } }
@@ -1175,7 +1197,7 @@ function renderB(inviter,selfTest){
   document.getElementById("inviterName").textContent=inviter.name||"그 사람";
   try{ const S=saju(inviter); S.sex=inviter.sex; const inm=hon(inviter.name,'그 사람');
     document.getElementById("bTeaser").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px">${charPortrait(S,96)}<div>${inm}${josaP(inm,'eunneun')} <b>${GAN_MULSANG[S.ilgan].n}</b> 같은 ${sexWord(inviter.sex)}</div></div>`; }catch(e){}
-  document.getElementById("formB").innerHTML=personForm("B", selfTest?(inviter.name||""):"");
+  document.getElementById("formB").innerHTML=personForm("B", selfTest?(inviter.name||""):"", true);
   show("viewB");
   window._inviter=inviter;
 }
@@ -1186,7 +1208,8 @@ function revealResult(){
 
 function renderResult(a,b){
   const A=saju(a), B=saju(b); A.name=hon(a.name,""); B.name=hon(b.name,""); A.mbti=a.mbti; B.mbti=b.mbti; A.sex=a.sex; B.sex=b.sex;
-  const comp=compatibility(A,B);
+  const rel=(b&&REL_META[b.rel])?b.rel:'love';
+  const comp=compatibility(A,B,rel);
   const deep=deepReading(A,B,comp);
   const tl=timeline(A,B);
   const fus=fusionReport(A,B,comp);
@@ -1203,7 +1226,7 @@ function renderResult(a,b){
         <div class="score"><span id="scoreNum">0</span><small>점</small></div>
         <div class="verdict">${comp.verdict} · <span style="color:var(--rose)">${comp.relLabel}</span></div>
         <div class="tagline">${comp.tag}</div>
-        ${(A.sex&&B.sex)?`<div class="reltype">${A.sex!==B.sex?'이성 궁합':'동성 궁합'}</div>`:''}
+        <div class="reltype">${REL_META[rel].badge(A.sex===B.sex)}</div>
       </div>
 
       <div class="charrow">
@@ -1236,7 +1259,7 @@ function renderResult(a,b){
       (A.mbti||B.mbti)?`
       <div class="sec"><div class="para" style="color:var(--ink-faint);text-align:center">둘 다 MBTI를 넣으면 <b style="color:var(--lav)">성격 × 사주 심층 융합</b> 리포트까지 열려요 ✨</div></div>`:``}
 
-      ${deepMenuHTML('couple')}
+      ${deepMenuHTML('couple', rel)}
 
       <div class="sec">
         <h3>각자 어떤 사람</h3>
