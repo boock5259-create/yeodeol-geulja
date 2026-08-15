@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.4/lunar.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
   :root{
     --bg0:#0a0f24; --bg1:#131a3d; --bg2:#241a54;
@@ -165,6 +166,22 @@
   .pay-processing{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink)}
   .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
+  .fineprint{font-size:11.5px;color:var(--ink-faint);text-align:center;margin-top:12px;line-height:1.5}
+  .solo{margin-bottom:16px;text-align:center;background:rgba(255,255,255,.04)}
+  .solo-h{font-weight:800;font-size:17px;letter-spacing:-.02em;margin-bottom:10px}
+  .solo .nameline{justify-content:center}
+  .solo .pillars{justify-content:center}
+  .solo-teaser{margin-top:14px;font-size:14px;color:var(--ink-dim);line-height:1.6}
+  .bteaser{margin:9px 0 2px;font-size:14px;color:var(--gold-soft);display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600}
+  .branchcta{margin-top:18px;text-align:center;padding:18px 16px;border-radius:18px;border:1px solid rgba(157,134,255,.28);background:linear-gradient(180deg,rgba(157,134,255,.1),rgba(125,92,246,.05))}
+  .branch-h{font-weight:800;font-size:16px;letter-spacing:-.02em}
+  .branch-h b{color:var(--lav)}
+  .branch-sub{font-size:12.5px;color:var(--ink-dim);margin-top:5px;line-height:1.5}
+  .prewrap{text-align:center}
+  .pre-h{font-weight:800;font-size:17px}
+  .pre-sub{font-size:13px;color:var(--ink-dim);margin-top:6px;line-height:1.5}
+  .pre-form{display:flex;gap:8px;margin-top:14px}
+  .pre-form input{flex:1}
 
   .tl{display:flex;flex-direction:column;gap:8px}
   .tlrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;border:1px solid var(--card-line);background:rgba(255,255,255,.03)}
@@ -220,28 +237,28 @@
     <section id="viewA">
       <div class="card hero fade">
         <div class="glow"></div>
-        <h2>우리, <span class="accent">얼마나 잘 맞을까?</span> 💕</h2>
+        <h2>우리, <span class="accent">얼마나 잘 맞을까?</span></h2>
         <p>내 생일 넣고 링크를 만들어<br/>그 사람한테 톡 보내면, 둘의 궁합이 열려요.</p>
       </div>
       <div class="card pad fade" style="margin-top:14px">
         <div id="formA"></div>
-        <button class="btn" onclick="makeLink()">💛 우리 궁합 링크 만들기</button>
-        <div class="devnote">프로토타입 · 저장·로그인·결제 없음. 링크에 정보가 담겨 그 사람이 열면 결과가 나옵니다.</div>
+        <button class="btn" onclick="makeLink()">우리 궁합 링크 만들기</button>
+        <div class="fineprint">로그인·저장 없이 바로 · 생일은 이 브라우저에서만 계산돼요</div>
       </div>
     </section>
 
     <!-- ===== VIEW LINK: 링크 생성됨 ===== -->
     <section id="viewLink" class="hidden">
       <div class="card pad fade">
-        <div class="hero" style="padding:8px 0 6px;background:none;border:none;box-shadow:none">
-          <h2 style="font-size:22px">링크가 만들어졌어요 ✨</h2>
+        <div id="soloBox"></div>
+        <div class="hero" style="padding:16px 0 6px;background:none;border:none;box-shadow:none">
+          <h2 style="font-size:20px">이제 <span class="accent">그 사람</span>에게 보내면<br/>둘의 궁합이 열려요</h2>
         </div>
-        <p style="text-align:center;color:var(--ink-dim);font-size:14px">아래 링크를 <b style="color:var(--gold-soft)">그 사람</b>에게 카톡으로 보내세요.</p>
         <div class="linkbox">
           <input id="linkField" readonly />
           <button class="copybtn" id="copyBtn" onclick="copyLink()">복사</button>
         </div>
-        <button class="btn kko" onclick="fakeKakao()">💬 카카오톡으로 보내기</button>
+        <button class="btn kko" onclick="shareLink()">그 사람에게 보내기</button>
         <div class="steps">
           <div class="step"><span class="n">1</span><div>그 사람이 링크를 열면 <b style="color:var(--ink)">자기 생일</b>을 넣어요.</div></div>
           <div class="step"><span class="n">2</span><div>두 사람 정보가 모여야 <b style="color:var(--ink)">궁합 결과</b>가 열립니다.</div></div>
@@ -255,18 +272,19 @@
       <div class="card hero fade">
         <div class="glow"></div>
         <div class="who"><b id="inviterName">○○</b>님이 당신과의 궁합을 궁금해해요</div>
-        <h2 style="font-size:22px">당신 생일을 넣으면<br/><span class="accent">둘의 결과</span>가 열려요</h2>
+        <div class="bteaser" id="bTeaser"></div>
+        <h2 style="font-size:21px">당신 생일만 넣으면<br/><span class="accent">둘의 궁합</span>이 열려요</h2>
       </div>
       <div class="card pad fade" style="margin-top:14px">
         <div id="formB"></div>
-        <button class="btn" onclick="revealResult()">🔮 우리 궁합 결과 열기</button>
+        <button class="btn" onclick="revealResult()">우리 궁합 결과 보기</button>
       </div>
     </section>
 
     <!-- ===== VIEW RESULT ===== -->
     <section id="viewResult" class="hidden"></section>
 
-    <div class="foot">여덟 글자 · prototype v0.1 — 재미로 보는 사주 궁합</div>
+    <div class="foot">여덟 글자 · 재미로 보는 사주 궁합</div>
   </div>
 
   <!-- 익명 결제 모달 -->
@@ -369,6 +387,16 @@ const OH_SVG={
   수:'<path d="M12 2s7 8 7 12a7 7 0 0 1-14 0C5 10 12 2 12 2z"/>'
 };
 function ohSym(oh,sz){ sz=sz||17; return `<svg class="ohsym" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="#ffd06b" style="vertical-align:-2px">${OH_SVG[oh]||''}</svg>`; }
+/* ── 계측(track): 지금은 localStorage+콘솔, 나중에 GA4/엔드포인트 한 줄 연결 ── */
+function track(ev, props){
+  props=Object.assign({t:Date.now()}, props||{});
+  try{ const a=JSON.parse(localStorage.getItem('yg_events')||'[]'); a.push(Object.assign({ev},props)); localStorage.setItem('yg_events', JSON.stringify(a.slice(-800))); }catch(e){}
+  try{ if(window.gtag) gtag('event', ev, props); }catch(e){}
+  try{ console.log('[track]', ev, props); }catch(e){}
+}
+window.ygEvents=()=>{ try{ return JSON.parse(localStorage.getItem('yg_events')||'[]'); }catch(e){ return []; } };
+window.ygFunnel=()=>{ const a=window.ygEvents(); const c=k=>a.filter(x=>x.ev===k).length;
+  return {링크생성:c('link_create'),링크열림:c('link_open'),B완주:c('b_complete'),공유클릭:c('share_click'),분기시작:c('branch_start'),결제모달:c('pay_open'),결제수단클릭:c('pay_click')}; };
 
 /* 보안·검증 헬퍼 (악성 입력 방어) */
 function sanitizeName(s){ return String(s==null?"":s).replace(/[<>&"'`\r\n\t\\{}]/g,'').trim().slice(0,12); }
@@ -477,8 +505,8 @@ function compatibility(A,B){
 
   score=Math.max(38,Math.min(97,Math.round(score)));
   let verdict,tag;
-  if(score>=88){verdict="천생연분";tag="이런 인연, 흔치 않아요 💫";}
-  else if(score>=76){verdict="찰떡 케미";tag="곁에 있으면 편안한 사이 💛";}
+  if(score>=88){verdict="천생연분";tag="이런 인연, 흔치 않아요";}
+  else if(score>=76){verdict="찰떡 케미";tag="곁에 있으면 편안한 사이";}
   else if(score>=64){verdict="은근 잘 맞음";tag="알아갈수록 더 좋아지는 사이";}
   else if(score>=54){verdict="설레는 밀당";tag="다른 듯 끌리는, 심심할 틈 없는 사이";}
   else{verdict="서로 배우는 사이";tag="노력한 만큼 깊어지는 인연";}
@@ -623,7 +651,30 @@ function makeLink(){
   const p=readPerson("A"); if(!p)return; personA=p;
   const url=location.origin+location.pathname+"#c="+enc(p);
   document.getElementById("linkField").value=url;
+  const sb=document.getElementById("soloBox"); if(sb) sb.innerHTML=soloCard(p);
+  track('link_create',{});
   show("viewLink");
+}
+// A 솔로 맛보기: 공유 전에 자기 결과를 먼저 보여줘 '당겨지게'
+function soloCard(p){
+  const S=saju(p); const nm=hon(p.name,"당신");
+  const arr=[S.year,S.month,S.day]; if(S.hour)arr.push(S.hour);
+  const pills=arr.map((pl,i)=>`<div class="pill"><div class="g">${GAN[pl.gan]}</div><div class="g" style="font-size:15px;opacity:.85">${JI[pl.ji]}</div><div class="lab">${['년','월','일','시'][i]}주</div></div>`).join("");
+  const chips=OH_PERSONA[S.dominant].map(t=>`<span class="chip">${t}</span>`).join("");
+  return `<div class="solo card pad">
+    <div class="solo-h">${nm}의 여덟 글자</div>
+    <div class="nameline" style="justify-content:center">${ohSym(S.ilganOh)} · ${OH_KO[S.ilganOh]}의 사람 <span style="color:var(--ink-faint)">(강한 기운 ${OH_KO[S.dominant]})</span></div>
+    <div class="pillars" style="margin-top:8px">${pills}</div>
+    <div class="chiplist" style="justify-content:center;margin-top:12px">${chips}</div>
+    <div class="solo-teaser">${nm}${josaP(nm,'eunneun')} <b>${OH_PERSONA[S.dominant][0]}</b> 사람이에요. <b style="color:var(--gold-soft)">그 사람과 얼마나 맞는지</b>는 링크를 보내면 둘이 함께 열려요.</div>
+  </div>`;
+}
+async function shareLink(){
+  track('share_click',{kind:'link'});
+  const url=document.getElementById("linkField").value;
+  const payload={title:'여덟 글자 · 우리 궁합', text:'우리 궁합 볼래? 생일만 넣으면 둘이 함께 열려요', url};
+  if(navigator.share){ try{ await navigator.share(payload); return; }catch(e){ if(e && e.name==='AbortError') return; } }
+  copyLink(); alert('링크를 복사했어요! 그 사람에게 카톡으로 붙여넣어 보내세요.\n(모바일에선 공유 버튼이 카톡을 바로 띄웁니다)');
 }
 function copyLink(){
   const f=document.getElementById("linkField"); f.select();
@@ -639,6 +690,8 @@ function previewSelf(){ // 나 혼자 테스트: A로 B도 채워 결과
 
 function renderB(inviter,selfTest){
   document.getElementById("inviterName").textContent=inviter.name||"그 사람";
+  try{ const S=saju(inviter); const inm=hon(inviter.name,'그 사람');
+    document.getElementById("bTeaser").innerHTML=`${inm}${josaP(inm,'eunneun')} ${ohSym(S.ilganOh)} <b>${OH_KO[S.ilganOh]}의 사람</b>`; }catch(e){}
   document.getElementById("formB").innerHTML=personForm("B", selfTest?(inviter.name||""):"");
   show("viewB");
   window._inviter=inviter;
@@ -689,21 +742,18 @@ function renderResult(a,b){
         <div class="mbtirow"><span class="mbtibadge">${A.name||"나"} · ${A.mbti}</span><span class="mbx">×</span><span class="mbtibadge">${B.name||"상대"} · ${B.mbti}</span></div>
         <div class="para" style="margin-top:12px">${fus.teaser}</div>
         <div class="premium" id="premiumBox">
-          <div class="prem-head"><span>🔒</span> 심층 융합 리포트 <span class="price">990원</span></div>
+          <div class="prem-head"><span class="lockico">🔒</span> 심층 융합 리포트 <span class="price">990원</span></div>
           <div class="prem-teaser"><b>${A.name||"나"}</b>${josaP(A.name||"나",'gwawa')} <b>${B.name||"상대"}</b>의 겉과 속부터, 둘이 만나면·부딪힐 때·오래가려면까지 — 사주와 성격을 하나로 엮은 4개 챕터.</div>
           <div class="prem-locked blurred" id="premLocked">${fus.sections.map(s=>`<span class="prem-chip">${s.h}</span>`).join("")}</div>
-          <button class="btn unlock sm" onclick="openPayModal()">💛 990원으로 전체 리포트 보기</button>
+          <button class="btn unlock sm" onclick="openPayModal()">990원으로 전체 리포트 보기</button>
         </div>
       </div>`:
       (A.mbti||B.mbti)?`
       <div class="sec"><div class="para" style="color:var(--ink-faint);text-align:center">둘 다 MBTI를 넣으면 <b style="color:var(--lav)">성격 × 사주 심층 융합</b>까지 볼 수 있어요 ✨</div></div>`:``}
 
       <div class="sec">
-        <h3>심층 풀이</h3>
-        <div id="deepBox">${deep.map(p=>`<div class="para">${p}</div>`).join("")}</div>
-        <button class="btn ghost sm" id="aiBtn" onclick="genAI()">🤖 오픈소스 AI로 더 깊게 풀어보기</button>
-        <div id="aiStatus" class="hint" style="text-align:center;margin-top:8px"></div>
-        <div class="para" style="margin-top:14px;margin-bottom:6px;color:var(--ink-dim)"><b style="color:var(--ink)">${A.name||"나"}</b>${eunneun(A.name||"나")} 이런 사람</div>
+        <h3>각자 어떤 사람</h3>
+        <div class="para" style="margin-bottom:6px;color:var(--ink-dim)"><b style="color:var(--ink)">${A.name||"나"}</b>${eunneun(A.name||"나")} 이런 사람</div>
         <div class="chiplist" style="margin-bottom:12px">${personaChips(A)}</div>
         <div class="para" style="margin-bottom:6px;color:var(--ink-dim)"><b style="color:var(--ink)">${B.name||"상대"}</b>${eunneun(B.name||"상대")} 이런 사람</div>
         <div class="chiplist">${personaChips(B)}</div>
@@ -722,38 +772,63 @@ function renderResult(a,b){
           <div class="sc-in">
             <div class="glow2"></div>
             <div class="top">✦ 여덟 글자 ✦</div>
-            <div class="nm"><b>${A.name||"나"}</b><span class="hh">💛</span><b>${B.name||"상대"}</b></div>
-            <div class="pair"><div class="orb">${ohSym(A.ilganOh,26)}</div><div class="heart">💞</div><div class="orb">${ohSym(B.ilganOh,26)}</div></div>
+            <div class="nm"><b>${A.name||"나"}</b><span class="hh">${goldHeart(14)}</span><b>${B.name||"상대"}</b></div>
+            <div class="pair"><div class="orb">${ohSym(A.ilganOh,26)}</div><div class="heart">${goldHeart(22)}</div><div class="orb">${ohSym(B.ilganOh,26)}</div></div>
             <div class="big">${comp.score}<small>점</small></div>
             <div class="vd">${comp.verdict}</div>
             <div class="qt">${comp.tag}</div>
             <div class="brandf">사주로 보는 우리 · 여덟글자</div>
           </div>
         </div>
-        <button class="btn sm" onclick="alert('실제 버전에선 이 카드가 이미지로 저장돼 카톡·인스타 스토리(9:16)로 바로 공유됩니다 📸')">📸 이미지로 저장해서 공유</button>
+        <button class="btn sm" onclick="saveCard()">카드 이미지로 저장</button>
       </div>
 
-      <div class="devnote">위 '심층 풀이'는 즉시 뜨는 템플릿이고, <b>🤖 버튼을 누르면 오픈소스 LLM(Qwen2.5)이 브라우저 안에서 직접</b> 두 사람 사주를 읽어 새로 씁니다. 첫 실행 때만 모델을 받고(한 번), 그 뒤엔 완전 로컬·무료·무키. (실제 제품에선 Claude API로 교체 가능)</div>
-
-      <button class="btn ghost sm" onclick="location.hash='';location.reload()">💛 다른 사람이랑도 해보기</button>
+      <div class="branchcta">
+        <div class="branch-h">이번엔 <b>네가 궁금한 사람</b>이랑</div>
+        <div class="branch-sub">엄마랑은? 전 남친이랑은? 팀장이랑은? — 네 다른 궁합은 몇 점일까</div>
+        <button class="btn violet sm" onclick="branchNew()">나도 다른 사람이랑 궁합 보기</button>
+      </div>
       <div class="disc">재미로 보는 사주 궁합입니다 · 생년월일시는 브라우저에서만 계산되고 어디에도 저장되지 않아요 · 결과는 참고용이에요</div>
     </div>`;
   show("viewResult");
   animateScore(comp.score);
+  track('b_complete',{score:comp.score, rel:comp.relKey, mbti:!!(A.mbti&&B.mbti)});
 }
+function goldHeart(sz){ sz=sz||16; return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="#ffb3c8" style="vertical-align:middle"><path d="M12 21C5 15.5 3 12 3 8.6 3 6 5.1 4 7.4 4c1.7 0 3.2.9 4 2.3C12.4 4.9 13.9 4 15.6 4 18 4 20 6 20 8.6 20 12 18 15.5 12 21z"/></svg>`; }
+async function saveCard(){
+  track('share_click',{kind:'save'});
+  const card=document.getElementById('shareCard');
+  if(!card || !window.html2canvas){ alert('이미지 저장이 준비 중이에요. 잠시 후 다시 시도해 주세요.'); return; }
+  try{
+    const canvas=await html2canvas(card,{backgroundColor:'#241a4e',scale:2,useCORS:true,logging:false});
+    const a=document.createElement('a'); a.download='우리궁합.png'; a.href=canvas.toDataURL('image/png'); a.click();
+  }catch(e){ console.error(e); alert('저장 중 문제가 생겼어요 🙏'); }
+}
+function branchNew(){ track('branch_start',{}); location.hash=''; location.reload(); }
 function animateScore(target){
   const el=document.getElementById('scoreNum'); if(!el)return;
   let n=0; const step=Math.max(1,Math.round(target/26));
   const t=setInterval(()=>{ n+=step; if(n>=target){n=target;clearInterval(t);} el.textContent=n; },26);
 }
-function openPayModal(){ const m=document.getElementById('payModal'); if(m){ m.classList.remove('hidden'); document.body.style.overflow='hidden'; } }
+function openPayModal(){ track('pay_open',{}); const m=document.getElementById('payModal'); if(m){ resetPayModal(); const p=document.getElementById('payProcessing'); if(p){p.classList.add('hidden');p.innerHTML='';} m.classList.remove('hidden'); document.body.style.overflow='hidden'; } }
 function closePayModal(){ const m=document.getElementById('payModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; resetPayModal(); } }
 function resetPayModal(){ const p=document.getElementById('payProcessing'); if(p)p.classList.add('hidden'); const mm=document.getElementById('payMethods'); if(mm)mm.style.opacity=1; }
 function doPay(method){
-  const proc=document.getElementById('payProcessing'), methods=document.getElementById('payMethods'), st=document.getElementById('payStatus');
-  if(!proc)return; methods.style.opacity=.25; proc.classList.remove('hidden'); st.textContent=method+'로 결제 중…';
-  setTimeout(()=>{ st.textContent='결제 완료! 리포트를 여는 중… ✨'; },1000);
-  setTimeout(()=>{ document.getElementById('payModal').classList.add('hidden'); document.body.style.overflow=''; resetPayModal(); unlockFusion(); },1900);
+  track('pay_click',{method});
+  const proc=document.getElementById('payProcessing'), methods=document.getElementById('payMethods');
+  if(!proc)return; methods.style.opacity=.25; proc.classList.remove('hidden');
+  proc.innerHTML=`<div class="prewrap">
+    <div class="pre-h">곧 출시돼요!</div>
+    <div class="pre-sub"><b>${method}</b> 결제는 지금 준비 중이에요. 출시되면 <b>제일 먼저</b> 알려드릴게요.</div>
+    <div class="pre-form"><input id="notifyEmail" placeholder="이메일 (선택)" /><button class="btn sm" style="margin:0;width:auto;padding:12px 18px" onclick="notifyMe()">알림 받기</button></div>
+    <div class="hint" id="notifyDone" style="margin-top:8px"></div>
+  </div>`;
+}
+function notifyMe(){
+  const em=(document.getElementById('notifyEmail')||{}).value||'';
+  track('pay_intent',{email: em?'1':'0'});
+  const d=document.getElementById('notifyDone'); if(d) d.textContent='신청됐어요! 출시되면 알려드릴게요 💌';
+  const inp=document.getElementById('notifyEmail'); if(inp) inp.disabled=true;
 }
 function unlockFusion(){
   const fus=window._ctx&&window._ctx.fus; if(!fus)return;
@@ -812,6 +887,7 @@ function boot(){
     if(inviter && validBirth(inviter.birth)){
       inviter.name=sanitizeName(inviter.name);
       inviter.mbti=MBTI_LIST.includes(inviter.mbti)?inviter.mbti:"";
+      track('link_open',{});
       renderB(inviter,false); return;
     }
   }
