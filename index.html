@@ -446,6 +446,7 @@ gtag('js', new Date());
     <div class="modal-card">
       <div class="modal-x" onclick="closeDeep()">✕</div>
       <div id="deepBody"></div>
+      <button class="btn ghost sm" id="deepSaveBtn" onclick="saveDeepReport()" style="margin-top:14px">📥 이 리포트 이미지로 저장</button>
     </div>
   </div>
 
@@ -892,6 +893,24 @@ function openFusionDeep(){
 }
 function showDeepModal(){ const m=document.getElementById('deepModal'); if(m){ m.classList.remove('hidden'); document.body.style.overflow='hidden'; m.querySelector('.modal-card').scrollTop=0; } }
 function closeDeep(){ const m=document.getElementById('deepModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; } }
+// 심층 리포트를 이미지로 따로 저장(전체 내용 캡처, ✕·저장버튼은 숨김)
+async function saveDeepReport(){
+  const card=document.querySelector('#deepModal .modal-card');
+  if(!card || !window.html2canvas){ alert('이미지 저장이 준비 중이에요. 잠시 후 다시 시도해 주세요.'); return; }
+  const x=card.querySelector('.modal-x'), btn=document.getElementById('deepSaveBtn');
+  const prevMax=card.style.maxHeight, prevOv=card.style.overflow;
+  const titleEl=document.querySelector('#deepBody .dm-title')||document.querySelector('#deepBody .ai-title');
+  const title=(titleEl&&titleEl.textContent)||'심층리포트';
+  try{
+    if(x)x.style.visibility='hidden'; if(btn)btn.style.visibility='hidden';
+    card.style.maxHeight='none'; card.style.overflow='visible';
+    const bg=getComputedStyle(card).backgroundColor;
+    const canvas=await html2canvas(card,{backgroundColor:(bg&&bg!=='rgba(0, 0, 0, 0)')?bg:'#1e1740',scale:2,useCORS:true,logging:false});
+    const a=document.createElement('a'); a.download='여덟글자_'+String(title).replace(/[^\w가-힣]/g,'').slice(0,20)+'.png'; a.href=canvas.toDataURL('image/png'); a.click();
+    track('deep_save',{});
+  }catch(e){ console.error(e); alert('저장 중 문제가 생겼어요 🙏'); }
+  finally{ if(x)x.style.visibility=''; if(btn)btn.style.visibility=''; card.style.maxHeight=prevMax; card.style.overflow=prevOv; }
+}
 
 /* ============================================================
    AI 심층분석 하네스 — 로컬 헤드리스 브리지(claude -p)로 실시간 생성
@@ -919,7 +938,7 @@ function buildDeepContext(key){
   return base;
 }
 const DEEP_AI_RULES=`너는 궁합 웹앱 "여덟 글자"의 AI 심층 사주 분석가다. [확정 사주 데이터]는 앱 엔진이 이미 계산한 사실이다. 그 사실 위에서만 쓴다.
-규칙: (1)데이터의 값(여덟글자·오행·십성 세운·rate·MBTI·관계)만 근거로 삼고 생년월일·없는 간지·새 사실을 지어내지 마라. (2)각 연도는 그 해 간지·십성·rate에 근거해 말하고 rate(좋음/보통/주의)와 모순되게 쓰지 마라. (3)재미로 보는 사주 톤 — 단정적 예언 금지, "~할 흐름/좋아요" 식 여지. (4)밝고 다정한 존댓말, 이름 뒤 '님'은 붙여 쓰기("수진님", "수진 님" 아님), 한국어 조사 정확(은/는·이/가·을/를·과/와), 이모지는 문단당 0~1개. (5)본문 220~340자, 2~3문단. (6)반드시 한국어(한글)로만 쓴다 — 영어 단어·문장 금지(chemistry·balance·point 같은 영어 대신 '케미'·'균형'·'점' 처럼 한글로). 오직 MBTI 4글자 코드(INFP·ENTJ 등)만 예외로 허용.`;
+규칙: (1)데이터의 값(여덟글자·오행·십성 세운·rate·MBTI·관계)만 근거로 삼고 생년월일·없는 간지·새 사실을 지어내지 마라. (2)각 연도는 그 해 간지·십성·rate에 근거해 말하고 rate(좋음/보통/주의)와 모순되게 쓰지 마라. (3)재미로 보는 사주 톤 — 단정적 예언 금지, "~할 흐름/좋아요" 식 여지. (4)밝고 다정한 존댓말, 이름 뒤 '님'은 붙여 쓰기("수진님", "수진 님" 아님), 한국어 조사 정확(은/는·이/가·을/를·과/와), 이모지는 문단당 0~1개. (5)본문 **500~750자, 4~5문단**으로 충분히 깊고 구체적으로 써라. 각 문단이 '언제(세운 근거)+무엇이+어떻게 하면 좋은지'를 담게 하고, 뻔한 일반론 대신 이 사람의 여덟글자·오행·물상·MBTI에서만 나올 디테일을 넣어라. 마지막 문단은 바로 실천할 수 있는 구체적 조언. (6)반드시 한국어(한글)로만 쓴다 — 영어 단어·문장 금지(chemistry·balance·point 같은 영어 대신 '케미'·'균형'·'점' 처럼 한글로). 오직 MBTI 4글자 코드(INFP·ENTJ 등)만 예외로 허용.`;
 const DEEP_TOPIC_GUIDE={
   gobaek:'언제·어떻게 마음을 전하면 좋을지. 세운의 "좋음" 해를 근거로 시기를, 두 사람 MBTI·물상으로 방법을. 마지막 문단에 세운기준 인물의 MBTI에 맞는 행동 팁 1줄.',
   marriage:'결혼·다음 단계에 좋은 해와 조심할 해. 관성·재성 해를 근거로 스토리처럼.',
@@ -944,7 +963,7 @@ function buildFusionContext(){
 }
 function buildFusionPrompt(){
   const c=buildFusionContext(); if(!c) return null;
-  return `${DEEP_AI_RULES}\n\n## 주제: 🧬 성격 × 사주 심층 리포트\n지시: 두 사람의 MBTI(겉)와 사주 오행(속)을 엮어 4개 챕터를 써라 — "겉과 속"(각자 MBTI와 사주가 일치/반전하는지), "둘이 만나면"(에너지·소통 화학반응), "부딪힐 때"(갈등 패턴), "오래가려면"(관계 팁). 각 챕터는 굵은 제목 + 1~2문장. 관계유형(연인/친구/가족/직장)에 맞는 톤으로.\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"겉과 속 — ...\\n\\n둘이 만나면 — ...\\n\\n부딪힐 때 — ...\\n\\n오래가려면 — ..."}`;
+  return `${DEEP_AI_RULES}\n\n## 주제: 🧬 성격 × 사주 심층 리포트\n지시: 두 사람의 MBTI(겉)와 사주 오행(속)을 엮어 4개 챕터를 써라 — "겉과 속"(각자 MBTI와 사주가 일치/반전하는지), "둘이 만나면"(에너지·소통 화학반응), "부딪힐 때"(갈등 패턴과 푸는 법), "오래가려면"(구체적 관계 팁). 각 챕터는 굵은 제목 + **3~4문장**으로 구체적이고 깊게(두 사람 물상·오행·MBTI를 실제로 엮어서). 관계유형(연인/친구/가족/직장)에 맞는 톤으로. 전체 700~1000자.\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"겉과 속 — ...\\n\\n둘이 만나면 — ...\\n\\n부딪힐 때 — ...\\n\\n오래가려면 — ..."}`;
 }
 function fusionCacheKey(){ const c=buildFusionContext(); try{ return 'ai:fusion:'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).slice(0,140); }catch(e){ return 'ai:fusion'; } }
 function aiCacheKey(key){ const c=buildDeepContext(key); try{ return 'ai:'+key+':'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).slice(0,140); }catch(e){ return 'ai:'+key; } }
