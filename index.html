@@ -1108,7 +1108,7 @@ function personForm(prefix,defName,withRel){
     <select id="${prefix}_sex"><option value="여">여성</option><option value="남">남성</option></select>
     <label class="f">MBTI <span style="color:var(--ink-faint)">(알면 성격까지 같이 봐요)</span></label>
     <select id="${prefix}_mbti">${mbtiOpts}</select>
-    ${withRel?`<label class="f">우리 사이는? <span style="color:var(--ink-faint)">(결과 톤이 맞춰져요)</span></label>
+    ${withRel?`<label class="f">누구랑 볼 궁합이에요? <span style="color:var(--ink-faint)">(결과 톤이 맞춰져요)</span></label>
     <select id="${prefix}_rel"><option value="love">💗 연인·썸</option><option value="friend">🤝 친구</option><option value="family">👨‍👩‍👧 가족</option><option value="work">💼 직장</option></select>`:''}`;
 }
 function setCal(prefix,c){
@@ -1292,7 +1292,7 @@ function renderB(inviter,selfTest){
   document.getElementById("inviterName").textContent=inviter.name||"그 사람";
   try{ const S=saju(inviter); S.sex=inviter.sex; const inm=hon(inviter.name,'그 사람');
     document.getElementById("bTeaser").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px">${charPortrait(S,96)}<div>${inm}${josaP(inm,'eunneun')} <b>${GAN_MULSANG[S.ilgan].n}</b> 같은 ${sexWord(inviter.sex)}</div></div>`; }catch(e){}
-  document.getElementById("formB").innerHTML=personForm("B", selfTest?(inviter.name||""):"", true);
+  document.getElementById("formB").innerHTML=personForm("B", selfTest?(inviter.name||""):"", false);
   show("viewB");
   window._inviter=inviter;
 }
@@ -1303,7 +1303,7 @@ function revealResult(){
 
 function renderResult(a,b){
   const A=saju(a), B=saju(b); A.name=hon(a.name,""); B.name=hon(b.name,""); A.mbti=a.mbti; B.mbti=b.mbti; A.sex=a.sex; B.sex=b.sex;
-  const rel=(b&&REL_META[b.rel])?b.rel:'love';
+  const rel=(a&&REL_META[a.rel])?a.rel : ((b&&REL_META[b.rel])?b.rel:'love'); // A(첫화면)가 고른 관계 우선
   const comp=compatibility(A,B,rel);
   const deep=deepReading(A,B,comp);
   const tl=timeline(A,B);
@@ -1490,13 +1490,14 @@ async function genAI(){
 
 /* 진입 라우팅 */
 function boot(){
-  document.getElementById("formA").innerHTML=personForm("A");
+  document.getElementById("formA").innerHTML=personForm("A", "", true);
   const h=location.hash;
   if(h.startsWith("#c=")){
     const inviter=dec(h.slice(3));
     if(inviter && validBirth(inviter.birth)){
       inviter.name=sanitizeName(inviter.name);
       inviter.mbti=MBTI_LIST.includes(inviter.mbti)?inviter.mbti:"";
+      inviter.rel=REL_META[inviter.rel]?inviter.rel:"love";
       track('link_open',{});
       renderB(inviter,false); return;
     }
