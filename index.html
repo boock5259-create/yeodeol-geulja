@@ -328,6 +328,10 @@ gtag('js', new Date());
     background:linear-gradient(120deg,rgba(245,196,81,.2),rgba(179,157,247,.22));color:var(--gold-soft);border:1px solid rgba(245,196,81,.35)}
   .ai-title{font-weight:800;font-size:16px;letter-spacing:-.01em;margin-bottom:8px;color:var(--ink)}
   .ai-body{font-size:14px;line-height:1.72;color:var(--ink)}
+  .ai-h{font-weight:800;font-size:14.5px;color:var(--gold-soft);margin:17px 0 5px;padding-top:11px;border-top:1px solid var(--card-line)}
+  .ai-h:first-child{border-top:none;padding-top:0;margin-top:2px}
+  .deepcard.fullcard{border-color:rgba(245,196,81,.4);background:linear-gradient(165deg,rgba(245,196,81,.13),rgba(179,157,247,.06))}
+  .deepcard.fullcard .dt{color:var(--gold-soft)}
   .ai-loading{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-dim);padding:6px 0 2px}
   .ai-spin{width:15px;height:15px;border-radius:50%;border:2px solid rgba(179,157,247,.3);border-top-color:var(--lav);animation:aispin .8s linear infinite;flex:0 0 auto}
   @keyframes aispin{to{transform:rotate(360deg)}}
@@ -833,15 +837,23 @@ function deepMenuHTML(scope, rel){
         <div class="dprice"><span class="strike">990원</span> <span class="freeb">지금 무료</span></div>
         <div class="arrow">›</div>
       </button>` : '';
+  const fullCard = (scope==='couple' && window._ctx && window._ctx.A)
+    ? `<button class="deepcard wide fullcard" onclick="openDeep('full')">
+        <div class="di">📜</div>
+        <div class="dtx"><div class="dt">우리 궁합 종합 리포트</div><div class="ds">두 사람의 사주·성격을 한 편으로 — 각자 성향·겉궁합·속궁합·관계 흐름·조언·총평</div></div>
+        <div class="dprice"><span class="strike">990원</span> <span class="freeb">지금 무료</span></div>
+        <div class="arrow">›</div>
+      </button>` : '';
   return `<div class="sec">
     <h3 class="deep-h">🔮 AI 심층 분석 <span class="beta">지금 무료 체험</span></h3>
     <div class="para" style="color:var(--ink-faint);margin-bottom:4px">궁금한 주제를 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">언제</b>가 좋은지 짚어드려요.</div>
-    <div class="deepgrid">${cards}${fusionCard}</div>
+    <div class="deepgrid">${fullCard}${cards}${fusionCard}</div>
   </div>`;
 }
 
 function openDeep(key){
   if(key==='fusion'){ openFusionDeep(); return; }
+  if(key==='full'){ openFullReport(); return; }
   const ctx=window._ctx||window._solo; if(!ctx) return;
   const P=ctx.A||ctx.S; if(!P) return;
   track('deep_open',{topic:key});
@@ -890,6 +902,24 @@ function openFusionDeep(){
   if(useAI) aiDeepFetch('fusion', buildFusionPrompt(), fusionCacheKey()).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
     if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 두 분의 MBTI×사주를 실시간으로 엮어</b> 쓴 리포트예요 · 정식 예정가 990원'; }
     else slot.innerHTML=templateFus; });
+}
+function openFullReport(){
+  const ctx=window._ctx; if(!ctx||!ctx.A) return; const A=ctx.A,B=ctx.B; const fus=ctx.fus;
+  track('deep_open',{topic:'full'}); const useAI=aiOn();
+  const sec=(h,b)=>`<div class="ai-h">${h}</div><div class="ai-body" style="margin-bottom:12px">${b}</div>`;
+  let tf=`<div class="ai-badge">📜 종합 리포트</div>`;
+  tf+=sec((A.name||'나')+' 어떤 사람', personLong(A));
+  tf+=sec((B.name||'상대')+' 어떤 사람', personLong(B));
+  if(fus) fus.sections.forEach(s=>tf+=sec(s.h, s.body));
+  const templateFull=tf;
+  document.getElementById('deepBody').innerHTML=`
+    <div class="dm-top"><span class="dm-ic">📜</span><span class="dm-title">우리 궁합 종합 리포트</span><span class="dm-badge">무료 체험</span></div>
+    <div id="deepAnalysis">${useAI?aiLoaderHTML():templateFull}</div>
+    <div class="dm-foot" id="deepFoot">✨ 두 사람의 사주·성격을 한 편으로 엮은 종합 리포트예요 · 정식 예정가 990원</div>`;
+  showDeepModal();
+  if(useAI) aiDeepFetch('full', buildFullPrompt(), fullCacheKey()).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
+    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 두 분의 사주·성격을 한 편으로 엮어</b> 쓴 종합 리포트예요 · 정식 예정가 990원'; }
+    else slot.innerHTML=templateFull; });
 }
 function showDeepModal(){ const m=document.getElementById('deepModal'); if(m){ m.classList.remove('hidden'); document.body.style.overflow='hidden'; m.querySelector('.modal-card').scrollTop=0; } }
 function closeDeep(){ const m=document.getElementById('deepModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; } }
@@ -966,6 +996,32 @@ function buildFusionPrompt(){
   return `${DEEP_AI_RULES}\n\n## 주제: 🧬 성격 × 사주 심층 리포트\n지시: 두 사람의 MBTI(겉)와 사주 오행(속)을 엮어 4개 챕터를 써라 — "겉과 속"(각자 MBTI와 사주가 일치/반전하는지), "둘이 만나면"(에너지·소통 화학반응), "부딪힐 때"(갈등 패턴과 푸는 법), "오래가려면"(구체적 관계 팁). 각 챕터는 굵은 제목 + **3~4문장**으로 구체적이고 깊게(두 사람 물상·오행·MBTI를 실제로 엮어서). 관계유형(연인/친구/가족/직장)에 맞는 톤으로. 전체 700~1000자.\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"겉과 속 — ...\\n\\n둘이 만나면 — ...\\n\\n부딪힐 때 — ...\\n\\n오래가려면 — ..."}`;
 }
 function fusionCacheKey(){ const c=buildFusionContext(); try{ return 'ai:fusion:'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).slice(0,140); }catch(e){ return 'ai:fusion'; } }
+// 종합 심층 리포트(플래그십, 7섹션·길게) — 커플 전용
+function buildFullContext(){
+  const ctx=window._ctx; if(!ctx||!ctx.A) return null; const A=ctx.A,B=ctx.B;
+  const pf=P=>{ const f=personFusion(P); return f?f.verdict+' — '+f.note:''; };
+  const seun=analyzeTopic(A,'future').years.map(y=>({연도:y.y,간지:y.gz,십성:y.god,rate:y.rate}));
+  return {관계유형:REL_META[ctx.comp.rel]?REL_META[ctx.comp.rel].label:'연인·썸', 커플유형:ctx.ct?ctx.ct.name:'',
+    A:Object.assign(personCtx(A),{겉속:pf(A)}), B:Object.assign(personCtx(B),{겉속:pf(B)}),
+    궁합:{점수:ctx.comp.score, 평가:ctx.comp.verdict, 오행관계:ctx.comp.relLabel}, 관계흐름_세운:seun};
+}
+function buildFullPrompt(){
+  const c=buildFullContext(); if(!c) return null; const rel=c.관계유형; const nA=c.A.이름, nB=c.B.이름;
+  const flow = rel==='연인·썸'?'애정 흐름과 시기':'관계 흐름과 시기';
+  return `너는 궁합 웹앱 "여덟 글자"의 AI 심층 사주 분석가다. [확정 사주 데이터]는 앱 엔진이 계산한 사실이니 그 위에서만, 지어내지 말고 쓴다.
+이번엔 **종합 심층 궁합 리포트**다. 아래 7개 섹션을 순서대로, 각 섹션 제목을 반드시 【제목】 형식으로 쓰고 그 아래 3~5문장으로 깊고 구체적으로 써라. 두 사람의 물상·오행·여덟글자·MBTI·세운을 실제로 엮어 이 두 사람에게서만 나올 내용으로. 관계유형(${rel})에 맞는 톤(연애면 애정, 친구/가족/직장이면 그 관계로). 재미로 보는 톤(단정 예언 금지), 밝고 다정한 존댓말, 이름 뒤 '님' 붙여쓰기, 한국어(한글)로만(MBTI 코드만 예외).
+섹션 순서: 【${nA}님은 어떤 사람】 【${nB}님은 어떤 사람】 【겉궁합 — 성격의 조화】 【속궁합 — 타고난 기운의 조화】 【${flow}】 【부딪힐 때와 조언】 【총평】
+전체 1500~2200자.
+
+## [확정 사주 데이터]
+\`\`\`json
+${JSON.stringify(c,null,1)}
+\`\`\`
+
+## 출력
+아래 JSON만 반환(다른 말·코드블록 금지): {"title":"두 사람을 한마디로 요약한 제목","body":"【${nA}님은 어떤 사람】\\n내용...\\n\\n【${nB}님은 어떤 사람】\\n내용... (7섹션 전부)"}`;
+}
+function fullCacheKey(){ const c=buildFullContext(); try{ return 'ai:full:'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).slice(0,140); }catch(e){ return 'ai:full'; } }
 function aiCacheKey(key){ const c=buildDeepContext(key); try{ return 'ai:'+key+':'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).slice(0,140); }catch(e){ return 'ai:'+key; } }
 function aiCacheGet(k){ try{ return JSON.parse(localStorage.getItem('yg_ai_cache')||'{}')[k]||null; }catch(e){ return null; } }
 function aiCacheSet(k,v){ try{ const o=JSON.parse(localStorage.getItem('yg_ai_cache')||'{}'); o[k]=v; localStorage.setItem('yg_ai_cache',JSON.stringify(o)); }catch(e){} }
@@ -987,7 +1043,9 @@ async function aiDeepFetch(key, promptOverride, ckOverride){
 }
 function aiLoaderHTML(){ return `<div class="ai-loading"><span class="ai-spin"></span> AI가 사주 8글자를 읽고 리포트를 쓰는 중…</div>`; }
 function renderAISlot(p){ const slot=document.getElementById('deepAnalysis'); if(!slot||!p) return;
-  slot.innerHTML=`<div class="ai-badge">✨ AI 심층 리포트</div>${p.title?`<div class="ai-title">${esc(p.title)}</div>`:''}<div class="ai-body">${esc(p.body).replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>')}</div>`;
+  let body=esc(p.body).replace(/【([^】]+)】\s*(?:<br>|\n)?/g,'<div class="ai-h">$1</div>');  // 섹션 제목 스타일
+  body=body.replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+  slot.innerHTML=`<div class="ai-badge">✨ AI 심층 리포트</div>${p.title?`<div class="ai-title">${esc(p.title)}</div>`:''}<div class="ai-body">${body}</div>`;
 }
 
 /* ============================================================
