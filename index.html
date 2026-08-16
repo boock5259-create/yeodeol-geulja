@@ -335,6 +335,25 @@ gtag('js', new Date());
   .ai-loading{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-dim);padding:6px 0 2px}
   .ai-spin{width:15px;height:15px;border-radius:50%;border:2px solid rgba(179,157,247,.3);border-top-color:var(--lav);animation:aispin .8s linear infinite;flex:0 0 auto}
   @keyframes aispin{to{transform:rotate(360deg)}}
+  /* AI 심층 로딩 — 여덟 글자 몰입형 */
+  .yg-load{padding:16px 4px 8px;text-align:center}
+  .yg-load .glyphs{display:flex;flex-direction:column;gap:7px;align-items:center;margin-bottom:6px}
+  .yg-load .gset{display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .yg-load .gname{font-size:11px;color:var(--gold-soft);font-weight:800;margin-right:3px;letter-spacing:.02em}
+  .yg-load .gc{width:29px;height:33px;display:flex;align-items:center;justify-content:center;border-radius:9px;
+    font-size:17px;font-weight:800;color:var(--gold-soft);
+    background:linear-gradient(165deg,rgba(245,196,81,.15),rgba(255,255,255,.03));
+    border:1px solid rgba(245,196,81,.3);
+    opacity:0;transform:translateY(7px) scale(.88);
+    animation:ygpop .55s ease forwards,ygshim 2.4s ease-in-out infinite}
+  @keyframes ygpop{to{opacity:1;transform:none}}
+  @keyframes ygshim{0%,100%{box-shadow:0 0 0 rgba(245,196,81,0)}50%{box-shadow:0 0 15px -3px rgba(245,196,81,.55)}}
+  .yg-load .msg{font-size:14.5px;font-weight:700;color:var(--ink);margin:14px 0 2px;min-height:21px;transition:opacity .3s}
+  .yg-load .bar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:9px auto 0;max-width:270px}
+  .yg-load .fill{height:100%;width:3%;border-radius:999px;background:linear-gradient(90deg,var(--gold-soft),var(--gold));
+    box-shadow:0 0 10px -1px rgba(245,196,81,.5);animation:ygfill 56s cubic-bezier(.16,.72,.22,1) forwards}
+  @keyframes ygfill{to{width:92%}}
+  .yg-load .sub{font-size:11.5px;color:var(--ink-faint);margin-top:10px;line-height:1.55}
   /* 사주+MBTI 종합 점수 분해 */
   .scorebreak{margin-top:12px;text-align:center;padding:12px 14px;border-radius:14px;font-size:15.5px;color:var(--ink);
     background:linear-gradient(165deg,rgba(245,196,81,.1),rgba(179,157,247,.06));border:1px solid rgba(245,196,81,.25)}
@@ -1085,7 +1104,35 @@ async function aiDeepFetch(key, promptOverride, ckOverride){
     return null;
   }catch(e){ clearTimeout(to); track('ai_deep_fail',{topic:key,msg:String(e&&e.message||e).slice(0,60)}); return null; }
 }
-function aiLoaderHTML(){ return `<div class="ai-loading"><span class="ai-spin"></span> AI가 사주 여덟 글자를 읽고 리포트를 쓰는 중…</div>`; }
+function ygGz(g){ return (g&&g.gan!=null&&g.ji!=null)?(GAN[g.gan]+JI[g.ji]):''; }
+function ygEight(o){ if(!o) return ''; try{ return [o.year,o.month,o.day,o.hour].map(ygGz).join(''); }catch(e){ return ''; } }
+function ygGlyphRow(o, showName){
+  const cs=ygEight(o); if(!cs) return '';
+  const nm=showName?`<span class="gname">${esc((o.name||'').replace(/님$/,''))}</span>`:'';
+  const cells=[...cs].map((c,i)=>`<span class="gc" style="animation-delay:${i*85}ms,${i*85}ms">${c}</span>`).join('');
+  return `<div class="gset">${nm}${cells}</div>`;
+}
+let _ygLoadTimer=null;
+function startAiLoaderAnim(){
+  if(_ygLoadTimer){ clearInterval(_ygLoadTimer); _ygLoadTimer=null; }
+  const msgs=['여덟 글자를 세우는 중… 🔮','오행의 흐름을 읽는 중… 🌊','기운의 결을 맞춰보는 중… ✨','숨은 인연의 무늬를 짚는 중… 💫','리포트를 정성껏 쓰는 중… ✍️','마지막으로 곱게 다듬는 중… 🌟'];
+  let i=0;
+  _ygLoadTimer=setInterval(()=>{
+    const el=document.getElementById('ygLoadMsg');
+    if(!el){ clearInterval(_ygLoadTimer); _ygLoadTimer=null; return; }   // 로딩 사라지면 자동 정지
+    i=(i+1)%msgs.length; el.style.opacity=0;
+    setTimeout(()=>{ const e2=document.getElementById('ygLoadMsg'); if(e2){ e2.textContent=msgs[i]; e2.style.opacity=1; } },300);
+  },3400);
+}
+function aiLoaderHTML(){
+  const ctx=window._ctx, solo=window._solo; let rows='';
+  if(ctx&&ctx.A){ rows=ygGlyphRow(ctx.A,true)+(ctx.B?ygGlyphRow(ctx.B,true):''); }
+  else if(solo&&solo.S){ rows=ygGlyphRow(solo.S,false); }
+  const glyphs=rows?`<div class="glyphs">${rows}</div>`:'';
+  const who=(ctx&&ctx.A&&ctx.B)?'두 분만의':'당신만의';
+  setTimeout(startAiLoaderAnim,50);
+  return `<div class="yg-load">${glyphs}<div class="msg" id="ygLoadMsg">여덟 글자를 세우는 중… 🔮</div><div class="bar"><div class="fill"></div></div><div class="sub">보통 40~60초 걸려요 · AI가 ${who} 리포트를 <b style="color:var(--gold-soft)">직접</b> 씁니다</div></div>`;
+}
 function renderAISlot(p){ const slot=document.getElementById('deepAnalysis'); if(!slot||!p) return;
   let body=esc(p.body).replace(/【([^】]+)】\s*(?:<br>|\n)?/g,'<div class="ai-h">$1</div>');  // 섹션 제목 스타일
   body=body.replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
