@@ -882,10 +882,10 @@ function openDeep(key){
     ${rows}
     <div class="dm-tip">💡 ${T.tip(P)}</div>
     ${mbLine}
-    <div class="dm-foot" id="deepFoot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 당신의 사주 8글자를 실시간으로 읽어</b> 훨씬 더 깊고 개인화된 분석을 써 드려요 (예정가 990원)</div>`;
+    <div class="dm-foot" id="deepFoot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 당신의 사주 여덟 글자를 실시간으로 읽어</b> 훨씬 더 깊고 개인화된 분석을 써 드려요 (예정가 990원)</div>`;
   showDeepModal();
   if(useAI) aiDeepFetch(key).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
-    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 당신의 사주 8글자를 실시간으로 읽어</b> 쓴 리포트예요 · 정식 버전 예정가 990원'; }
+    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 당신의 사주 여덟 글자를 실시간으로 읽어</b> 쓴 리포트예요 · 정식 버전 예정가 990원'; }
     else slot.innerHTML=templateLead; });
 }
 function openFusionDeep(){
@@ -1046,7 +1046,7 @@ async function aiDeepFetch(key, promptOverride, ckOverride){
     return null;
   }catch(e){ clearTimeout(to); track('ai_deep_fail',{topic:key,msg:String(e&&e.message||e).slice(0,60)}); return null; }
 }
-function aiLoaderHTML(){ return `<div class="ai-loading"><span class="ai-spin"></span> AI가 사주 8글자를 읽고 리포트를 쓰는 중…</div>`; }
+function aiLoaderHTML(){ return `<div class="ai-loading"><span class="ai-spin"></span> AI가 사주 여덟 글자를 읽고 리포트를 쓰는 중…</div>`; }
 function renderAISlot(p){ const slot=document.getElementById('deepAnalysis'); if(!slot||!p) return;
   let body=esc(p.body).replace(/【([^】]+)】\s*(?:<br>|\n)?/g,'<div class="ai-h">$1</div>');  // 섹션 제목 스타일
   body=body.replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
