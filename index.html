@@ -331,6 +331,13 @@ gtag('js', new Date());
   .ai-loading{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-dim);padding:6px 0 2px}
   .ai-spin{width:15px;height:15px;border-radius:50%;border:2px solid rgba(179,157,247,.3);border-top-color:var(--lav);animation:aispin .8s linear infinite;flex:0 0 auto}
   @keyframes aispin{to{transform:rotate(360deg)}}
+  /* 사주+MBTI 종합 점수 분해 */
+  .scorebreak{margin-top:12px;text-align:center;padding:12px 14px;border-radius:14px;font-size:15.5px;color:var(--ink);
+    background:linear-gradient(165deg,rgba(245,196,81,.1),rgba(179,157,247,.06));border:1px solid rgba(245,196,81,.25)}
+  .scorebreak .op{color:var(--ink-faint);margin:0 5px}
+  .scorebreak .fin{color:var(--gold-soft)}
+  .scorebreak .sbnote{margin-top:6px;font-size:11.5px;font-weight:400;color:var(--ink-faint);line-height:1.5}
+  .scorebreak .sbnote b{color:var(--gold-soft)}
 </style>
 </head>
 <body>
@@ -567,6 +574,17 @@ function mbtiChem(a,b){
     "성격 유형까지 똑같은 쌍둥이 케미"
   ][same];
   return {same,line};
+}
+/* MBTI 궁합 → 종합 점수에 반영할 가감치(±). N/S 세계관·J/P 생활리듬을 크게, E/I 정반대는 균형(+) */
+function mbtiScoreDelta(ma,mb){
+  if(!MBTI_LIST.includes(ma)||!MBTI_LIST.includes(mb)) return null;
+  let d=0;
+  d += (ma[1]===mb[1])? 6 : -4;   // N/S 세계관(가장 큰 요인)
+  d += (ma[0]!==mb[0])? 3 :  0;   // E/I 정반대면 균형(+), 같으면 무난
+  d += (ma[2]===mb[2])? 3 : -2;   // T/F 판단 방식
+  d += (ma[3]===mb[3])? 4 : -4;   // J/P 생활 리듬(마찰 큼)
+  const same=[0,1,2,3].filter(i=>ma[i]===mb[i]).length;
+  return {delta:d, same};
 }
 
 /* ── MBTI × 사주 융합 (겉=MBTI, 속=사주 오행) ── */
@@ -1003,11 +1021,15 @@ function compatibility(A,B,rel){
   if(A.lacking===B.dominant){ score+=8; reasons.push(`<span class="hl">${A.name||"나"}</span>에게 부족한 ${josa(OH_KO[A.lacking],'eulreul')} ${josa(B.name||"상대",'iga')} 넉넉히 가졌어요 — 서로의 빈칸을 메우는 짝.`); }
   else if(B.lacking===A.dominant){ score+=8; reasons.push(`<span class="hl">${B.name||"상대"}</span>의 빈 곳을 ${josa(A.name||"나",'iga')} 채워줘요.`); }
 
-  score=Math.max(38,Math.min(97,Math.round(score)));
+  const clamp=v=>Math.max(38,Math.min(97,Math.round(v)));
+  const sajuScore=clamp(score);
+  const md=mbtiScoreDelta(A.mbti,B.mbti);      // 둘 다 MBTI 있을 때만
+  const mbtiDelta=md?md.delta:0;
+  score=clamp(score + mbtiDelta);              // 종합 점수 = 사주 + MBTI
   const band = score>=88?0 : score>=76?1 : score>=64?2 : score>=54?3 : 4;
   const vpick=arr=>arr[(score+A.ilgan*3+B.ilgan*7)%arr.length]; // 같은 점수대라도 두 사람 일간에 따라 다른 태그라인
   const verdict=VERDICTS[rel][band], tag=vpick(TAGS[rel][band]);
-  return {score,verdict,tag,reasons,relKey,relLabel,rel};
+  return {score,sajuScore,mbtiDelta,hasMbti:!!md,verdict,tag,reasons,relKey,relLabel,rel};
 }
 function personaChips(P){ return OH_PERSONA[P.dominant].map(t=>`<span class="chip">${t}</span>`).join(""); }
 const OH_LACK_ADVICE={
@@ -1369,6 +1391,7 @@ function renderResult(a,b){
       <div class="sec fusionSec">
         <h3>MBTI × 사주</h3>
         <div class="mbtirow"><span class="mbtibadge">${A.name||"나"} · ${A.mbti}</span><span class="mbx">×</span><span class="mbtibadge">${B.name||"상대"} · ${B.mbti}</span></div>
+        <div class="scorebreak"><b>사주 ${comp.sajuScore}</b> <span class="op">${comp.mbtiDelta>0?'＋':comp.mbtiDelta<0?'－':'±'}</span> <b>성격 ${comp.mbtiDelta===0?0:Math.abs(comp.mbtiDelta)}</b> <span class="op">=</span> <b class="fin">종합 ${comp.score}점</b><div class="sbnote">${comp.mbtiDelta>0?'MBTI 궁합이 점수를 <b>+'+comp.mbtiDelta+'점</b> 올렸어요':comp.mbtiDelta<0?'성격 차이가 점수를 <b>'+comp.mbtiDelta+'점</b> 낮췄어요':'성격 궁합은 딱 중립이에요'} · 사주엔 없던 MBTI까지 합친 점수예요</div></div>
         <div class="para" style="margin-top:12px">${fus.teaser}</div>
         <div class="para">${eiPair(A.mbti,B.mbti)} ${nsPair(A.mbti,B.mbti)}</div>
         <div class="para">${tfPair(A.mbti,B.mbti)} ${jpPair(A.mbti,B.mbti)}</div>
