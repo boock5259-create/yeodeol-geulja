@@ -338,6 +338,12 @@ gtag('js', new Date());
   .scorebreak .fin{color:var(--gold-soft)}
   .scorebreak .sbnote{margin-top:6px;font-size:11.5px;font-weight:400;color:var(--ink-faint);line-height:1.5}
   .scorebreak .sbnote b{color:var(--gold-soft)}
+  /* 커플 유형명 */
+  .ctype{margin-top:11px;font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--gold-soft);
+    display:inline-block;padding:7px 17px;border-radius:999px;
+    background:linear-gradient(120deg,rgba(245,196,81,.16),rgba(242,161,184,.12));border:1px solid rgba(245,196,81,.32)}
+  .ctype b{color:#fff5df}
+  .sc-ctype{margin-top:9px;font-size:15px;font-weight:800;color:#ffe7b4;letter-spacing:-.01em;line-height:1.3;padding:0 10px}
 </style>
 </head>
 <body>
@@ -996,6 +1002,25 @@ const TAGS={
   friend:[["평생 갈 단짝","말 안 해도 통하는 베프","서로의 안전지대"],["편하고 오래가는 친구","같이 있으면 편한 사이","자주 봐도 안 지겨운 사이"],["알수록 잘 맞는 친구","은근히 손발 맞는 사이","시간이 쌓아주는 우정"],["투닥대도 결국 붙어있는 사이","티격태격하다 정든 사이","밀고 당기는 재미가 있는 우정"],["다른 만큼 배우는 친구","맞춰가며 깊어지는 사이","서로 넓혀주는 사이"]],
   family:[["천생연분 같은 가족","말 안 해도 아는 사이","서로의 뿌리"],["편안한 가족 케미","척하면 척인 사이","오래 봐도 든든한 사이"],["알수록 닮은 가족","은근히 잘 맞는 사이","시간이 이어주는 정"],["애증이 오가는 케미","투닥대도 결국 챙기는 사이","가까워서 더 부딪히는 사이"],["다른 만큼 배우는 가족","맞춰가는 사이","서로를 이해해가는 사이"]],
   work:[["환상의 드림팀","눈빛만 봐도 아는 콤비","서로를 키워주는 파트너"],["합이 잘 맞는 콤비","척하면 척인 팀워크","오래 일해도 편한 사이"],["알수록 잘 맞는 파트너","은근히 손발 맞는 콤비","시간이 다져주는 팀워크"],["스타일 정반대 콤비","티격태격해도 결과는 내는 팀","밀당하듯 균형 맞추는 콤비"],["다른 만큼 시너지 나는 팀","맞춰가는 콤비","서로 배우는 파트너"]] };
+/* ── 커플 유형명 (물상 이모지 + 관계 다이내믹 + 관계유형 톤) — 공유용 캐치 라벨 ── */
+const OH_EMO2={목:'🌳',화:'🔥',토:'⛰️',금:'💎',수:'🌊'};
+const CT_NOUN={love:'커플',friend:'단짝',family:'가족',work:'콤비'};
+const CT_DESC={
+  same:["닮은꼴","거울처럼 통하는","찰떡같이 맞는"],
+  gen:["서로를 살리는","채워주며 크는","뿌리 깊은"],
+  ke:{ love:["눈 못 떼는 밀당","정반대라 더 끌리는","티키타카 불꽃"],
+       friend:["티격태격 찰떡","투닥대다 정드는","극과 극 케미"],
+       family:["애증의","부딪혀도 챙기는","극과 극"],
+       work:["스타일 정반대","손발은 착착","티격태격 시너지"] }
+};
+function coupleType(A,B,comp,rel){
+  rel=CT_NOUN[rel]?rel:'love';
+  const emoji=(OH_EMO2[A.ilganOh]||'✨')+(OH_EMO2[B.ilganOh]||'✨');
+  const cls=comp.relKey==='same'?'same':(comp.relKey==='a_ke_b'||comp.relKey==='b_ke_a')?'ke':'gen';
+  const pool=cls==='ke'?CT_DESC.ke[rel]:CT_DESC[cls];
+  const desc=pool[(comp.score+A.ilgan+B.ilgan)%pool.length];
+  return {emoji, name:`${desc} ${CT_NOUN[rel]}`};
+}
 function compatibility(A,B,rel){
   rel=REL_META[rel]?rel:'love';
   let score=52; const reasons=[]; let relLabel="", relKey="";
@@ -1314,10 +1339,10 @@ function copyLink(){
 function resultLink(){ const pr=window._pairRaw; return pr? location.origin+location.pathname+"#r="+enc(pr) : location.href; }
 async function shareResult(){
   const pr=window._pairRaw; if(!pr){ alert('결과를 먼저 불러주세요.'); return; }
-  const url=resultLink(); const c=window._ctx&&window._ctx.comp;
+  const url=resultLink(); const c=window._ctx&&window._ctx.comp; const ct=window._ctx&&window._ctx.ct;
   const nA=(pr.a&&pr.a.name)||'나', nB=(pr.b&&pr.b.name)||'상대';
-  const title=`${nA} × ${nB} 궁합${c?' '+c.score+'점':''} 💛`;
-  const desc=c?`${c.verdict} · ${c.tag} — 전체 결과 보기`:'우리 궁합 전체 결과 보기';
+  const title=ct?`${ct.emoji} ${ct.name}${c?' · '+c.score+'점':''} 💛`:`${nA} × ${nB} 궁합${c?' '+c.score+'점':''} 💛`;
+  const desc=c?`${nA} × ${nB} · ${c.verdict} — 전체 결과 보기`:'우리 궁합 전체 결과 보기';
   const useKakao=kakaoReady();
   track('result_share',{kind: useKakao?'kakao':(navigator.share?'webshare':'copy')});
   if(useKakao){
@@ -1352,10 +1377,11 @@ function renderResult(a,b){
   const A=saju(a), B=saju(b); A.name=hon(a.name,""); B.name=hon(b.name,""); A.mbti=a.mbti; B.mbti=b.mbti; A.sex=a.sex; B.sex=b.sex;
   const rel=(a&&REL_META[a.rel])?a.rel : ((b&&REL_META[b.rel])?b.rel:'love'); // A(첫화면)가 고른 관계 우선
   const comp=compatibility(A,B,rel);
+  const ct=coupleType(A,B,comp,rel);
   const deep=deepReading(A,B,comp);
   const tl=timeline(A,B);
   const fus=fusionReport(A,B,comp);
-  window._ctx={A,B,comp,fus};
+  window._ctx={A,B,comp,fus,ct};
   window._pairRaw={a:Object.assign({},a,{rel:rel}), b:b}; // 전체 결과 공유용 원본
   const pillLabels=["년","월","일","시"];
   const pillHTML=(S)=>{
@@ -1369,6 +1395,7 @@ function renderResult(a,b){
         <div class="score"><span id="scoreNum">0</span><small>점</small></div>
         <div class="verdict">${comp.verdict} · <span style="color:var(--rose)">${comp.relLabel}</span></div>
         <div class="tagline">${comp.tag}</div>
+        <div class="ctype">${ct.emoji} <b>${ct.name}</b></div>
         <div class="reltype">${REL_META[rel].badge(A.sex===B.sex)}</div>
       </div>
 
@@ -1434,6 +1461,7 @@ function renderResult(a,b){
             <div class="sc-corner tl">✦</div><div class="sc-corner tr">✦</div><div class="sc-corner bl">✦</div><div class="sc-corner br">✦</div>
             <div class="top">✦ 여덟 글자 ✦</div>
             <div class="nm"><b>${A.name||"나"}</b><span class="hh">${goldHeart(14)}</span><b>${B.name||"상대"}</b></div>
+            <div class="sc-ctype">${ct.emoji} ${ct.name}</div>
             <div class="pair">${charPortrait(A,98)}<div class="heart">${goldHeart(26)}</div>${charPortrait(B,98)}</div>
             <div class="big">${comp.score}<small>점</small></div>
             <div class="vd">${comp.verdict}</div>
