@@ -347,6 +347,8 @@ gtag('js', new Date());
     display:inline-block;padding:7px 17px;border-radius:999px;
     background:linear-gradient(120deg,rgba(245,196,81,.16),rgba(242,161,184,.12));border:1px solid rgba(245,196,81,.32)}
   .ctype b{color:#fff5df}
+  .oneline{margin-top:11px;font-size:14px;line-height:1.55;color:var(--ink);max-width:300px;
+    padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--card-line)}
   .sc-ctype{margin-top:9px;font-size:15px;font-weight:800;color:#ffe7b4;letter-spacing:-.01em;line-height:1.3;padding:0 10px}
 </style>
 </head>
@@ -711,7 +713,7 @@ function nowYear(){ try{ return new Date().getFullYear(); }catch(e){ return 2026
 /* 주제 정의: rate(god)→good|ok|care, note(god,이름)→설명, tip(P)→맞춤 팁, wide=큰 카드 */
 const DEEP_TOPICS={
   /* ── 커플 ── */
-  gobaek:{scope:'couple',loveOnly:true,icon:'💘',title:'고백·시작 타이밍',sub:'언제 마음을 전하면 좋을까',
+  gobaek:{scope:'couple',loveOnly:true,genderRomance:true,icon:'💘',title:'고백·시작 타이밍',sub:'언제 마음을 전하면 좋을까',
     rate:g=>({식상:'good',재성:'good',관성:'ok',인성:'ok',비겁:'care'}[g]),
     note:(g)=>({
       식상:'매력이 밖으로 확 드러나는 해 — 표현할수록 통해요. 고백 최적기 💘',
@@ -720,7 +722,7 @@ const DEEP_TOPICS={
       인성:'마음이 편안해지는 안정기. 서두르기보다 신뢰를 먼저 쌓기 좋아요.',
       비겁:'경쟁·비교·삼각이 끼기 쉬운 해 — 확신을 준 뒤에 움직이세요.'}[g]),
     tip:()=>'고백은 <b>상대가 편안할 때</b>가 8할이에요. 위 “좋은 해”의 봄·초여름(음력 2~5월)에 자연스러운 자리를 만들어 보세요.'},
-  marriage:{scope:'couple',loveOnly:true,icon:'💍',title:'결혼 시기',sub:'좋은 해와 조심할 해',
+  marriage:{scope:'couple',loveOnly:true,genderRomance:true,icon:'💍',title:'결혼 시기',sub:'좋은 해와 조심할 해',
     rate:g=>({관성:'good',재성:'good',인성:'ok',식상:'ok',비겁:'care'}[g]),
     note:(g)=>({
       관성:'책임·약속의 기운이 드는 해 — 결혼·동거 등 “매듭짓는 결정”에 좋아요 💍',
@@ -802,11 +804,15 @@ function jiRelNote(P, jiChar){
   if(CHUNG[P.ilji]===jiChar) return '변화·이동수가 겹치니 큰 결정은 한 박자 늦추면 좋아요.';
   return JI_TEXTURE[jiChar]||'';
 }
+// 이성(연애) 별: 남명=재성, 여명=관성. 여성 연애주제에선 재성↔관성 역할을 스왑해야 명리적으로 맞다
+function romanceRemap(god){ return god==='재성'?'관성':god==='관성'?'재성':god; }
 function analyzeTopic(P, key){
   const T=DEEP_TOPICS[key]; const y0=nowYear(); const years=[];
+  const swap = T.genderRomance && P.sex==='여';   // 여성 연애주제만 스왑
   for(let i=0;i<5;i++){
     const yi=yearInfo(y0+i); const god=tenGodGroup(P.ilganOh, yi.gan);
-    let rate=T.rate(god), note=T.note(god)+' '+jiRelNote(P, yi.jiChar);
+    const g=swap?romanceRemap(god):god;            // 판정·문구는 성별 보정된 십성으로
+    let rate=T.rate(g), note=T.note(g)+' '+jiRelNote(P, yi.jiChar);
     if(T.marriageBonus && YUKHAP[P.ilji]===yi.jiChar){ rate='good'; note+=' 💍'; }
     years.push({y:yi.y, gz:yi.gz, god, rate, note});
   }
@@ -1088,13 +1094,29 @@ const TAGS={
 const OH_EMO2={목:'🌳',화:'🔥',토:'⛰️',금:'💎',수:'🌊'};
 const CT_NOUN={love:'커플',friend:'단짝',family:'가족',work:'콤비'};
 const CT_DESC={
-  same:["닮은꼴","거울처럼 통하는","찰떡같이 맞는"],
-  gen:["서로를 살리는","채워주며 크는","뿌리 깊은"],
-  ke:{ love:["눈 못 떼는 밀당","정반대라 더 끌리는","티키타카 불꽃"],
-       friend:["티격태격 찰떡","투닥대다 정드는","극과 극 케미"],
-       family:["애증의","부딪혀도 챙기는","극과 극"],
-       work:["스타일 정반대","손발은 착착","티격태격 시너지"] }
+  same:["판박이","거울","싱크로율 만렙"],
+  gen:["찰떡","산소 같은","서로의 비타민"],
+  ke:{ love:["밀당 고수","불꽃","톰과 제리"],
+       friend:["톰과 제리","투닥투닥","애증의"],
+       family:["애증의","웬수 같은","티격태격"],
+       work:["극과 극","환장의 티키타카","브레이크 없는"] }
 };
+/* 한 줄 판결 — 사주 신호 × MBTI 갈등축을 콕 집어 "상처 내는" 공유 훅(무료) */
+function oneLineVerdict(A,B,comp){
+  const sajuGood=['b_to_a','a_to_b','same'].includes(comp.relKey);
+  const light=sajuGood?'사주는 초록불':'사주는 노란불';
+  const ma=A.mbti, mb=B.mbti, hasM=MBTI_LIST.includes(ma)&&MBTI_LIST.includes(mb);
+  let clash;
+  if(hasM){
+    if(ma[2]!==mb[2]) clash='한 명은 머리·한 명은 가슴이라 "왜 그렇게 차가워?"가 언젠가 터져요';
+    else if(ma[3]!==mb[3]) clash='"미리 정하자 vs 그때 봐서"에서 매번 갈려요';
+    else if(ma[2]==='F') clash='둘 다 가슴파라, 삐지면 냉전이 길어요';
+    else clash='둘 다 머리파라, 서운함을 말 안 하고 쌓아요';
+  } else {
+    clash=sajuGood?'서로의 빈칸을 채우는, 흔치 않은 짝이에요':'끌리는데 조심스러운, 알수록 빠지는 짝이에요';
+  }
+  return `${light}인데 — ${clash}`;
+}
 function coupleType(A,B,comp,rel){
   rel=CT_NOUN[rel]?rel:'love';
   const emoji=(OH_EMO2[A.ilganOh]||'✨')+(OH_EMO2[B.ilganOh]||'✨');
@@ -1460,6 +1482,7 @@ function renderResult(a,b){
   const rel=(a&&REL_META[a.rel])?a.rel : ((b&&REL_META[b.rel])?b.rel:'love'); // A(첫화면)가 고른 관계 우선
   const comp=compatibility(A,B,rel);
   const ct=coupleType(A,B,comp,rel);
+  const vv=oneLineVerdict(A,B,comp);
   const deep=deepReading(A,B,comp);
   const tl=timeline(A,B);
   const fus=fusionReport(A,B,comp);
@@ -1478,6 +1501,7 @@ function renderResult(a,b){
         <div class="verdict">${comp.verdict} · <span style="color:var(--rose)">${comp.relLabel}</span></div>
         <div class="tagline">${comp.tag}</div>
         <div class="ctype">${ct.emoji} <b>${ct.name}</b></div>
+        <div class="oneline">💬 ${vv}</div>
         <div class="reltype">${REL_META[rel].badge(A.sex===B.sex)}</div>
       </div>
 
@@ -1547,7 +1571,7 @@ function renderResult(a,b){
             <div class="pair">${charPortrait(A,98)}<div class="heart">${goldHeart(26)}</div>${charPortrait(B,98)}</div>
             <div class="big">${comp.score}<small>점</small></div>
             <div class="vd">${comp.verdict}</div>
-            <div class="qt">${comp.tag}</div>
+            <div class="qt">${vv}</div>
             <div class="brandf">✦ 사주로 보는 우리 · 여덟글자 ✦</div>
           </div>
         </div>
