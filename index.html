@@ -1284,6 +1284,27 @@ function copyLink(){
   const b=document.getElementById("copyBtn"); b.textContent="복사됨 ✓"; b.classList.add("done");
   setTimeout(()=>{b.textContent="복사";b.classList.remove("done");},1600);
 }
+/* 전체 결과 공유: 두 사람 데이터를 #r= 에 담아 열면 바로 전체 결과가 뜸(상대가 입력 불필요) */
+function resultLink(){ const pr=window._pairRaw; return pr? location.origin+location.pathname+"#r="+enc(pr) : location.href; }
+async function shareResult(){
+  const pr=window._pairRaw; if(!pr){ alert('결과를 먼저 불러주세요.'); return; }
+  const url=resultLink(); const c=window._ctx&&window._ctx.comp;
+  const nA=(pr.a&&pr.a.name)||'나', nB=(pr.b&&pr.b.name)||'상대';
+  const title=`${nA} × ${nB} 궁합${c?' '+c.score+'점':''} 💛`;
+  const desc=c?`${c.verdict} · ${c.tag} — 전체 결과 보기`:'우리 궁합 전체 결과 보기';
+  const useKakao=kakaoReady();
+  track('result_share',{kind: useKakao?'kakao':(navigator.share?'webshare':'copy')});
+  if(useKakao){
+    try{ Kakao.Share.sendDefault({ objectType:'feed',
+      content:{ title, description:desc, imageUrl:ogImageUrl(), link:{mobileWebUrl:url, webUrl:url} },
+      buttons:[{ title:'전체 결과 보기', link:{mobileWebUrl:url, webUrl:url} }] }); return;
+    }catch(e){ track('share_error',{msg:String((e&&e.message)||e).slice(0,80)}); }
+  }
+  const payload={title:'여덟 글자 · 우리 궁합 결과', text:`${nA} × ${nB}${c?' '+c.score+'점 '+c.verdict:''}`, url};
+  if(navigator.share){ try{ await navigator.share(payload); return; }catch(e){ if(e && e.name==='AbortError') return; } }
+  try{ await navigator.clipboard.writeText(url); }catch(e){ try{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();}catch(_){} }
+  alert('전체 결과 링크를 복사했어요! 카톡에 붙여넣어 보내면, 상대는 생일 안 넣어도 전체 결과를 바로 봐요.');
+}
 function previewSelf(){ // 나 혼자 테스트: A로 B도 채워 결과
   location.hash="c="+enc(personA); renderB(personA,true);
 }
@@ -1309,6 +1330,7 @@ function renderResult(a,b){
   const tl=timeline(A,B);
   const fus=fusionReport(A,B,comp);
   window._ctx={A,B,comp,fus};
+  window._pairRaw={a:Object.assign({},a,{rel:rel}), b:b}; // 전체 결과 공유용 원본
   const pillLabels=["년","월","일","시"];
   const pillHTML=(S)=>{
     const arr=[S.year,S.month,S.day]; if(S.hour)arr.push(S.hour);
@@ -1374,7 +1396,9 @@ function renderResult(a,b){
       </div>
 
       <div class="sec">
-        <h3>공유 카드</h3>
+        <h3>공유하기</h3>
+        <button class="btn violet" onclick="shareResult()">💛 전체 결과 링크로 공유하기</button>
+        <div class="para" style="text-align:center;color:var(--ink-faint);font-size:12px;margin:-4px 0 14px">상대는 생일 안 넣어도 이 결과를 그대로 봐요 · 카드 이미지는 아래에서 저장</div>
         <div class="sharecard" id="shareCard">
           <div class="sc-stars"></div>
           <div class="sc-in">
@@ -1390,7 +1414,7 @@ function renderResult(a,b){
             <div class="brandf">✦ 사주로 보는 우리 · 여덟글자 ✦</div>
           </div>
         </div>
-        <button class="btn sm" onclick="saveCard()">카드 이미지로 저장</button>
+        <button class="btn ghost sm" onclick="saveCard()">카드 이미지로 저장</button>
       </div>
 
       <div class="branchcta">
@@ -1492,6 +1516,15 @@ async function genAI(){
 function boot(){
   document.getElementById("formA").innerHTML=personForm("A", "", true);
   const h=location.hash;
+  if(h.startsWith("#r=")){                          // 전체 결과 링크 — 바로 결과 표시(입력 불필요)
+    const pair=dec(h.slice(3));
+    if(pair && pair.a && pair.b && validBirth(pair.a.birth) && validBirth(pair.b.birth)){
+      ['a','b'].forEach(k=>{ pair[k].name=sanitizeName(pair[k].name); pair[k].mbti=MBTI_LIST.includes(pair[k].mbti)?pair[k].mbti:""; });
+      pair.a.rel=REL_META[pair.a.rel]?pair.a.rel:'love';
+      track('result_open',{});
+      renderResult(pair.a, pair.b); return;
+    }
+  }
   if(h.startsWith("#c=")){
     const inviter=dec(h.slice(3));
     if(inviter && validBirth(inviter.birth)){
