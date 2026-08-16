@@ -435,7 +435,7 @@ gtag('js', new Date());
       <div class="modal-x" onclick="closePayModal()">✕</div>
       <div class="pay-title">심층 융합 리포트</div>
       <div class="pay-sub">MBTI × 사주를 하나로 엮은 4챕터 전체</div>
-      <div class="pay-amount">990<span>원</span></div>
+      <div class="pay-amount">777<span>원</span></div>
       <div class="pay-methods" id="payMethods">
         <button class="pay-m kakao" onclick="doPay('카카오페이')">카카오페이로 결제</button>
         <button class="pay-m toss" onclick="doPay('토스페이')">토스페이로 결제</button>
@@ -832,7 +832,7 @@ function deepMenuHTML(scope, rel){
         <div class="dt">${t.title}</div>
         <div class="ds">${t.sub}</div>
       </div>
-      <div class="dprice"><span class="strike">990원</span> <span class="freeb">지금 무료</span></div>
+      <div class="dprice"><span class="strike">777원</span> <span class="freeb">지금 무료</span></div>
       <div class="arrow">›</div>
     </button>`;
   }).join("");
@@ -840,19 +840,23 @@ function deepMenuHTML(scope, rel){
     ? `<button class="deepcard wide" onclick="openDeep('fusion')">
         <div class="di">🧬</div>
         <div class="dtx"><div class="dt">성격 × 사주 심층 리포트</div><div class="ds">MBTI와 사주를 엮은 4챕터 (겉과 속·둘이 만나면·부딪힐 때·오래가려면)</div></div>
-        <div class="dprice"><span class="strike">990원</span> <span class="freeb">지금 무료</span></div>
+        <div class="dprice"><span class="strike">777원</span> <span class="freeb">지금 무료</span></div>
         <div class="arrow">›</div>
       </button>` : '';
   const fullCard = (scope==='couple' && window._ctx && window._ctx.A)
     ? `<button class="deepcard wide fullcard" onclick="openDeep('full')">
         <div class="di">📜</div>
         <div class="dtx"><div class="dt">우리 궁합 종합 리포트</div><div class="ds">두 사람의 사주·성격을 한 편으로 — 각자 성향·겉궁합·속궁합·관계 흐름·조언·총평</div></div>
-        <div class="dprice"><span class="strike">990원</span> <span class="freeb">지금 무료</span></div>
+        <div class="dprice"><span class="strike">777원</span> <span class="freeb">지금 무료</span></div>
         <div class="arrow">›</div>
       </button>` : '';
+  const hookH = scope==='couple' ? '그 사람 속마음, 콕 짚어드려요' : '네 속마음과 타이밍, 콕 짚어드려요';
+  const hookP = scope==='couple'
+    ? '묻고 싶은 걸 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">그 사람 마음</b>과 <b style="color:var(--ink-dim)">언제</b>가 열리는지 짚어드려요.'
+    : '궁금한 걸 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">언제</b>가 좋은지 짚어드려요.';
   return `<div class="sec">
-    <h3 class="deep-h">🔮 AI 심층 분석 <span class="beta">지금 무료 체험</span></h3>
-    <div class="para" style="color:var(--ink-faint);margin-bottom:4px">궁금한 주제를 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">언제</b>가 좋은지 짚어드려요.</div>
+    <h3 class="deep-h">🔮 ${hookH} <span class="beta">지금 무료 체험</span></h3>
+    <div class="para" style="color:var(--ink-faint);margin-bottom:4px">${hookP}</div>
     <div class="deepgrid">${fullCard}${cards}${fusionCard}</div>
   </div>`;
 }
@@ -888,10 +892,10 @@ function openDeep(key){
     ${rows}
     <div class="dm-tip">💡 ${T.tip(P)}</div>
     ${mbLine}
-    <div class="dm-foot" id="deepFoot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 당신의 사주 여덟 글자를 실시간으로 읽어</b> 훨씬 더 깊고 개인화된 분석을 써 드려요 (예정가 990원)</div>`;
+    <div class="dm-foot" id="deepFoot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 당신의 사주 여덟 글자를 실시간으로 읽어</b> 훨씬 더 깊고 개인화된 분석을 써 드려요 (예정가 777원)</div>`;
   showDeepModal();
   if(useAI) aiDeepFetch(key).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
-    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 당신의 사주 여덟 글자를 실시간으로 읽어</b> 쓴 리포트예요 · 정식 버전 예정가 990원'; }
+    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 당신의 사주 여덟 글자를 실시간으로 읽어</b> 쓴 리포트예요 · 정식 버전 예정가 777원'; }
     else slot.innerHTML=templateLead; });
 }
 function openFusionDeep(){
@@ -903,10 +907,10 @@ function openFusionDeep(){
   document.getElementById('deepBody').innerHTML=`
     <div class="dm-top"><span class="dm-ic">🧬</span><span class="dm-title">성격 × 사주 심층 리포트</span><span class="dm-badge">무료 체험</span></div>
     <div id="deepAnalysis">${useAI?aiLoaderHTML():templateFus}</div>
-    <div class="dm-foot" id="deepFoot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 두 분의 MBTI×사주를 실시간으로 엮어</b> 새로 써 드려요 (예정가 990원)</div>`;
+    <div class="dm-foot" id="deepFoot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 두 분의 MBTI×사주를 실시간으로 엮어</b> 새로 써 드려요 (예정가 777원)</div>`;
   showDeepModal();
   if(useAI) aiDeepFetch('fusion', buildFusionPrompt(), fusionCacheKey()).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
-    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 두 분의 MBTI×사주를 실시간으로 엮어</b> 쓴 리포트예요 · 정식 예정가 990원'; }
+    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 두 분의 MBTI×사주를 실시간으로 엮어</b> 쓴 리포트예요 · 정식 예정가 777원'; }
     else slot.innerHTML=templateFus; });
 }
 function openFullReport(){
@@ -921,10 +925,10 @@ function openFullReport(){
   document.getElementById('deepBody').innerHTML=`
     <div class="dm-top"><span class="dm-ic">📜</span><span class="dm-title">우리 궁합 종합 리포트</span><span class="dm-badge">무료 체험</span></div>
     <div id="deepAnalysis">${useAI?aiLoaderHTML():templateFull}</div>
-    <div class="dm-foot" id="deepFoot">✨ 두 사람의 사주·성격을 한 편으로 엮은 종합 리포트예요 · 정식 예정가 990원</div>`;
+    <div class="dm-foot" id="deepFoot">✨ 두 사람의 사주·성격을 한 편으로 엮은 종합 리포트예요 · 정식 예정가 777원</div>`;
   showDeepModal();
   if(useAI) aiDeepFetch('full', buildFullPrompt(), fullCacheKey()).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
-    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 두 분의 사주·성격을 한 편으로 엮어</b> 쓴 종합 리포트예요 · 정식 예정가 990원'; }
+    if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 두 분의 사주·성격을 한 편으로 엮어</b> 쓴 종합 리포트예요 · 정식 예정가 777원'; }
     else slot.innerHTML=templateFull; });
 }
 function showDeepModal(){ const m=document.getElementById('deepModal'); if(m){ m.classList.remove('hidden'); document.body.style.overflow='hidden'; m.querySelector('.modal-card').scrollTop=0; } }
@@ -1357,6 +1361,7 @@ function showSolo(){
   const S=saju(p); S.sex=p.sex; S.name=hon(p.name,"나"); S.mbti=p.mbti;
   window._solo={S};
   const m=GAN_MULSANG[S.ilgan];
+  const emo=(OH_EMO2[S.ilganOh]||'✨'); S.typeLabel=`${emo} ${m.n} 유형`;
   const arr=[S.year,S.month,S.day]; if(S.hour)arr.push(S.hour);
   const pills=arr.map((pl,i)=>`<div class="pill"><div class="g">${GAN[pl.gan]}</div><div class="g" style="font-size:16px;opacity:.85">${JI[pl.ji]}</div><div class="lab">${['년','월','일','시'][i]}주</div></div>`).join("");
   const chips=OH_PERSONA[S.dominant].map(t=>`<span class="chip">${t}</span>`).join("");
@@ -1365,6 +1370,7 @@ function showSolo(){
       <div style="text-align:center">
         <div class="solo-h" style="font-size:19px">${S.name}의 여덟 글자</div>
         <div style="display:flex;justify-content:center;margin:14px 0">${charPortrait(S,152)}</div>
+        <div class="solo-type" style="font-size:23px;font-weight:800;letter-spacing:-.02em;margin:2px 0 6px">${S.typeLabel}</div>
         <div class="nameline" style="justify-content:center">${ohSym(S.ilganOh)} · <b>${m.n}</b> 같은 ${sexWord(p.sex)} <span style="color:var(--ink-faint)">· ${JI_ANIMAL[JI[S.year.ji]]}띠</span></div>
         <div class="chiplist" style="justify-content:center;margin-top:12px">${chips}</div>
       </div>
@@ -1391,6 +1397,7 @@ function showSolo(){
           </div>
         </div>
         <button class="btn sm" onclick="saveCard()">카드 이미지로 저장</button>
+        <button class="btn sm kko" onclick="shareSolo()" style="margin-top:8px">🔮 내 유형 공유 · 친구도 테스트하기</button>
       </div>
       <div class="branchcta">
         <div class="branch-h">이제 <b>그 사람과 궁합</b>도 볼까?</div>
@@ -1431,6 +1438,26 @@ async function shareLink(){
   const payload={title:'여덟 글자 · 우리 궁합', text:'우리 궁합 볼래? 생일만 넣으면 둘이 함께 열려요', url};
   if(navigator.share){ try{ await navigator.share(payload); return; }catch(e){ if(e && e.name==='AbortError') return; } }
   copyLink(); alert('링크를 복사했어요! 그 사람에게 카톡으로 붙여넣어 보내세요.');
+}
+/* 솔로 유형 공유 = 획득 프론트(상대 정보 불필요, 친구가 자기 테스트를 하게 → 신규 유입) */
+async function shareSolo(){
+  const S=window._solo&&window._solo.S;
+  const url=location.origin+location.pathname;           // 해시 없는 기본 URL → 친구는 자기 테스트부터
+  const label=(S&&S.typeLabel)||'여덟 글자';
+  const title=`나는 ${label} 💫 — 넌 무슨 유형?`;
+  const desc='생일만 넣으면 30초 만에 내 여덟 글자 유형이 나와요. 너도 해봐!';
+  const useKakao=kakaoReady();
+  track('solo_share',{kind: useKakao?'kakao':(navigator.share?'webshare':'copy')});
+  if(useKakao){
+    try{ Kakao.Share.sendDefault({ objectType:'feed',
+      content:{ title, description:desc, imageUrl:ogImageUrl(), link:{mobileWebUrl:url, webUrl:url} },
+      buttons:[{ title:'내 유형 테스트하기', link:{mobileWebUrl:url, webUrl:url} }] }); return;
+    }catch(e){ track('share_error',{msg:String((e&&e.message)||e).slice(0,80)}); }
+  }
+  const payload={title:'여덟 글자 유형 테스트', text:title, url};
+  if(navigator.share){ try{ await navigator.share(payload); return; }catch(e){ if(e && e.name==='AbortError') return; } }
+  try{ await navigator.clipboard.writeText(url); }catch(e){ try{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();}catch(_){} }
+  alert('테스트 링크를 복사했어요! 카톡·인스타에 붙여넣어 친구도 해보게 하세요.');
 }
 function copyLink(){
   const f=document.getElementById("linkField"); f.select();
@@ -1631,7 +1658,7 @@ function unlockFusion(){
   box.className='prem-open';
   box.innerHTML=fus.sections.map(s=>`<div class="prem-sec"><div class="prem-h">${s.h}</div><div class="para" style="margin:0">${s.body}</div></div>`).join("");
   const btn=document.querySelector('#premiumBox .unlock');
-  if(btn) btn.outerHTML='<div class="hint" style="text-align:center;margin-top:10px">🔓 프로토타입이라 결제 없이 열었어요. 실제 버전은 990원 결제 + <b style="color:var(--lav)">AI가 두 분 사주·MBTI를 실시간으로 읽어 새로 씁니다.</b></div>';
+  if(btn) btn.outerHTML='<div class="hint" style="text-align:center;margin-top:10px">🔓 프로토타입이라 결제 없이 열었어요. 실제 버전은 777원 결제 + <b style="color:var(--lav)">AI가 두 분 사주·MBTI를 실시간으로 읽어 새로 씁니다.</b></div>';
 }
 
 /* ============================================================

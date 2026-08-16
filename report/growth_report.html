@@ -1,0 +1,298 @@
+<title>여덟 글자 성장 진단</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --bg:#f6f4ee; --surface:#fffdf8; --surface-2:#efe9dc; --line:#e4ddcd;
+  --ink:#1d1b14; --ink-soft:#5b564a; --ink-faint:#8b8574;
+  --accent:#a9750a; --accent-soft:#c99a2e;
+  --good:#1f9d6b; --warn:#c2851a; --crit:#cf4d4d;
+  --good-bg:#e6f4ec; --warn-bg:#f7eed8; --crit-bg:#f7e4e2;
+  --shadow:0 1px 2px rgba(30,26,14,.06),0 8px 24px rgba(30,26,14,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0e1f; --surface:#121834; --surface-2:#1a2040; --line:#2a3157;
+    --ink:#f2efe6; --ink-soft:#b7bed6; --ink-faint:#79819f;
+    --accent:#f5c451; --accent-soft:#e0b34d;
+    --good:#46c894; --warn:#e6b34d; --crit:#ec6d6d;
+    --good-bg:#12291f; --warn-bg:#2a2413; --crit-bg:#2c1717;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0e1f; --surface:#121834; --surface-2:#1a2040; --line:#2a3157;
+  --ink:#f2efe6; --ink-soft:#b7bed6; --ink-faint:#79819f;
+  --accent:#f5c451; --accent-soft:#e0b34d;
+  --good:#46c894; --warn:#e6b34d; --crit:#ec6d6d;
+  --good-bg:#12291f; --warn-bg:#2a2413; --crit-bg:#2c1717;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Segoe UI",system-ui,sans-serif;
+  font-size:16px; line-height:1.65; letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;
+}
+.wrap{max-width:1000px; margin:0 auto; padding:clamp(20px,4vw,56px) clamp(16px,4vw,32px) 80px}
+.num{font-variant-numeric:tabular-nums; font-feature-settings:"tnum"}
+
+/* header */
+.eyebrow{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); font-weight:700}
+h1{font-size:clamp(28px,5vw,44px); line-height:1.1; font-weight:800; letter-spacing:-.03em; margin:10px 0 8px; text-wrap:balance}
+.sub{color:var(--ink-soft); font-size:clamp(15px,2vw,17px); max-width:60ch; margin:0}
+.meta{margin-top:18px; display:flex; flex-wrap:wrap; gap:8px 14px; font-size:13px; color:var(--ink-faint)}
+.meta b{color:var(--ink-soft); font-weight:600}
+
+.caveat{margin:22px 0 0; padding:14px 16px; border-left:3px solid var(--warn);
+  background:var(--warn-bg); border-radius:0 10px 10px 0; font-size:14px; color:var(--ink-soft)}
+.caveat b{color:var(--ink)}
+
+/* section */
+section{margin-top:clamp(36px,6vw,60px)}
+.sec-h{display:flex; align-items:baseline; gap:12px; margin:0 0 4px}
+.sec-n{font-size:13px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums}
+h2{font-size:clamp(20px,3vw,26px); font-weight:800; letter-spacing:-.02em; margin:0; text-wrap:balance}
+.sec-lead{color:var(--ink-soft); font-size:15px; margin:8px 0 22px; max-width:66ch}
+
+/* stat tiles */
+.tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+@media(max-width:640px){.tiles{grid-template-columns:1fr}}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; box-shadow:var(--shadow)}
+.tile .lab{font-size:12px; letter-spacing:.04em; color:var(--ink-faint); text-transform:uppercase; font-weight:600}
+.tile .big{font-size:clamp(34px,6vw,46px); font-weight:800; letter-spacing:-.03em; line-height:1; margin:10px 0 6px}
+.tile .note{font-size:13px; color:var(--ink-soft); line-height:1.5}
+.tile.crit .big{color:var(--crit)} .tile.warn .big{color:var(--warn)} .tile.good .big{color:var(--good)}
+.tile .big small{font-size:.42em; font-weight:600; color:var(--ink-faint); letter-spacing:0}
+
+/* cards */
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:clamp(18px,3vw,26px); box-shadow:var(--shadow)}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+
+/* chart */
+.chart{display:flex; flex-direction:column; gap:11px; margin-top:6px}
+.row{display:grid; grid-template-columns:52px 1fr; gap:12px; align-items:center}
+.row .rl{font-size:13px; font-weight:600; color:var(--ink-soft)}
+.track{position:relative; background:var(--surface-2); border-radius:7px; height:26px; overflow:hidden}
+.bar{position:absolute; top:0; left:0; height:100%; border-radius:7px; display:flex; align-items:center; justify-content:flex-end;
+  padding-right:8px; font-size:12px; font-weight:700; color:#fff; min-width:26px}
+.bar.g{background:linear-gradient(90deg,var(--good),var(--good))}
+.bar.c{background:var(--crit)}
+.bar.a{background:linear-gradient(90deg,var(--accent-soft),var(--accent))}
+.bar.n{background:var(--ink-faint)}
+/* paired bars */
+.pair{display:grid; grid-template-columns:52px 1fr; gap:12px; align-items:center; margin-bottom:14px}
+.pairbars{display:flex; flex-direction:column; gap:5px}
+.mini{position:relative; background:var(--surface-2); border-radius:5px; height:19px; overflow:hidden}
+.mini .b{position:absolute; top:0; left:0; height:100%; border-radius:5px}
+.mini .v{position:absolute; top:0; right:6px; height:100%; display:flex; align-items:center; font-size:11px; font-weight:700; color:var(--ink-soft)}
+.mini .b.old{background:var(--accent)} .mini .b.new{background:var(--ink-faint)}
+.legend{display:flex; gap:16px; font-size:12px; color:var(--ink-soft); margin:2px 0 16px}
+.legend i{display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px}
+.legend .lo{background:var(--accent)} .legend .ln{background:var(--ink-faint)}
+
+.scale{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); margin-left:64px; margin-top:2px}
+
+/* verdict rows */
+.vrow{display:flex; gap:12px; padding:13px 0; border-top:1px solid var(--line); align-items:flex-start}
+.vrow:first-child{border-top:0}
+.chip{flex:none; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; letter-spacing:.02em; margin-top:2px}
+.chip.good{background:var(--good-bg); color:var(--good)}
+.chip.warn{background:var(--warn-bg); color:var(--warn)}
+.chip.crit{background:var(--crit-bg); color:var(--crit)}
+.vrow .vt{font-size:14px; color:var(--ink-soft)} .vrow .vt b{color:var(--ink); font-weight:700}
+
+/* flow */
+.flow{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; counter-reset:step}
+@media(max-width:720px){.flow{grid-template-columns:1fr 1fr}}
+@media(max-width:440px){.flow{grid-template-columns:1fr}}
+.step{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:var(--shadow); position:relative}
+.step .k{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent)}
+.step h3{font-size:16px; font-weight:800; margin:8px 0 6px; letter-spacing:-.01em}
+.step p{font-size:13px; color:var(--ink-soft); margin:0; line-height:1.55}
+.step .tag{display:inline-block; margin-top:10px; font-size:11px; font-weight:700; color:var(--good); background:var(--good-bg); padding:2px 8px; border-radius:999px}
+
+/* data table */
+.tbl{width:100%; border-collapse:collapse; font-size:14px}
+.tbl th,.tbl td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--line)}
+.tbl th{font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); font-weight:600}
+.tbl td.n{text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
+.tbl .hi{color:var(--good); font-weight:700}
+.tblwrap{overflow-x:auto; margin-top:6px}
+
+/* quote */
+.quote{margin-top:14px; padding:14px 16px; background:var(--surface-2); border-radius:12px; font-size:14px; color:var(--ink-soft); line-height:1.6}
+.quote b{color:var(--ink)}
+
+.src{font-size:12px; color:var(--ink-faint); margin-top:10px; line-height:1.5}
+.foot{margin-top:60px; padding-top:22px; border-top:1px solid var(--line); font-size:13px; color:var(--ink-faint)}
+.bignote{font-size:15px; color:var(--ink-soft)}
+.bignote b{color:var(--ink)}
+mark{background:transparent; color:var(--accent); font-weight:700}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">여덟 글자 · 시뮬레이션 진단</div>
+    <h1>바이럴은 왜 안 돌고, 돈은 어디서 나오나</h1>
+    <p class="sub">사주 궁합 웹 "여덟 글자"의 성장(K)과 수익화를, 300명 가상 페르소나와 경쟁앱 실측 리서치로 진단한 리포트.</p>
+    <div class="meta">
+      <span><b>표본</b> 10~60대 × 각 50명 = 300</span>
+      <span><b>방식</b> Haiku 페르소나 시뮬 + 웹 리서치</span>
+      <span><b>날짜</b> 2026-08-16</span>
+    </div>
+    <div class="caveat">⚠️ <b>시뮬 K는 실측 K가 아니다.</b> LLM 페르소나는 실제보다 후하게 답한다 — 절대 숫자가 아니라 <b>"어디서 루프가 깨지고, 어느 방식이 상대적으로 나은가"</b>라는 방향 신호로 읽을 것. 결제 페르소나의 평균 실결제율이 <mark>8.3%</mark>로, 포스텔러 실측 유료침투 <mark>8%</mark>에 착지한 점이 상대 신호의 신뢰 근거.</div>
+  </header>
+
+  <!-- 1. 헤드라인 -->
+  <section>
+    <div class="tiles">
+      <div class="tile warn">
+        <div class="lab">시뮬 K · 현재(강제공유)</div>
+        <div class="big num">0.12</div>
+        <div class="note">한 명이 새로 데려오는 사용자 수. 바이럴 임계선(1.0)의 1/8. <b>확산이 아니라 감쇠.</b></div>
+      </div>
+      <div class="tile crit">
+        <div class="lab">시뮬 K · 강제공유 제거 시</div>
+        <div class="big num">0.06</div>
+        <div class="note">"내가 상대 생일 직접입력" 가설 → K가 <b>오히려 절반</b>으로. 강제초대가 K의 엔진이었음.</div>
+      </div>
+      <div class="tile crit">
+        <div class="lab">결제 천장 (실결제)</div>
+        <div class="big num">8<small>%</small></div>
+        <div class="note">아무리 최적화해도 ~8%만 결제. 소수 헤비 과금 모델. <b>8% × 작은 트래픽 = 0.</b></div>
+      </div>
+    </div>
+    <p class="bignote" style="margin-top:20px">세 숫자가 한 방향을 가리킨다 — <b>지금 필요한 건 새 기능이 아니라, 소수를 태워 진짜 K를 재보는 것.</b> 그리고 <b>결제 설계는 K가 선 다음.</b></p>
+  </section>
+
+  <!-- 2. 퍼널 붕괴 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">01</span><h2>루프는 "강제 초대"에서 무너진다</h2></div>
+    <p class="sec-lead">활성화(맛보기 완주)는 멀쩡한데, 커플 결과를 열려면 상대에게 링크를 보내야 하는 그 칸에서 60~76%가 증발한다. 6개 세대 이탈 사유가 <b>전부 동일</b> — "상대에게 생일을 요구하는 게 부담·어색·불안".</p>
+    <div class="card">
+      <div class="chart">
+        <div class="row"><span class="rl">활성화</span><div class="track"><div class="bar g" style="width:74%">74%</div></div></div>
+        <div class="row"><span class="rl">초대 전송</span><div class="track"><div class="bar c" style="width:31%">31%</div></div></div>
+        <div class="row"><span class="rl">상대 완주</span><div class="track"><div class="bar n" style="width:19%">19%</div></div></div>
+      </div>
+      <div class="scale"><span>0%</span><span>활성화~결과 도달 (전 세대 평균)</span><span>100%</span></div>
+      <div class="quote">"말로 하면 되지 링크를 왜 줘" (40대) · "상대가 싫어할까봐" (10대) · "쑥스럽잖아" (30대)</div>
+    </div>
+  </section>
+
+  <!-- 3. K old vs new -->
+  <section>
+    <div class="sec-h"><span class="sec-n">02</span><h2>"강제공유 제거" 가설은 기각됐다</h2></div>
+    <p class="sec-lead">직관: 어색한 강제공유를 없애면 K가 오른다. 시뮬 결과: <b>정반대.</b> 강제 초대는 누수구멍인 동시에 K의 89~91%를 만드는 <b>거의 유일한 엔진</b>이었다(초대 성공 = 새 사용자 1명 보장). 그걸 없애고 선택적 자랑 공유에 기대면 K가 무너진다.</p>
+    <div class="card">
+      <div class="legend"><span><i class="lo"></i>현재 (강제공유)</span><span><i class="ln"></i>변경 (선택공유)</span></div>
+      <!-- scale max 0.25 -->
+      <div class="pair"><span class="rl">10대</span><div class="pairbars">
+        <div class="mini"><div class="b old" style="width:50%"></div><span class="v">0.125</span></div>
+        <div class="mini"><div class="b new" style="width:26%"></div><span class="v">0.065</span></div></div></div>
+      <div class="pair"><span class="rl">20대</span><div class="pairbars">
+        <div class="mini"><div class="b old" style="width:63%"></div><span class="v">0.158</span></div>
+        <div class="mini"><div class="b new" style="width:58%"></div><span class="v">0.145</span></div></div></div>
+      <div class="pair"><span class="rl">30대</span><div class="pairbars">
+        <div class="mini"><div class="b old" style="width:95%"></div><span class="v">0.237</span></div>
+        <div class="mini"><div class="b new" style="width:37%"></div><span class="v">0.092</span></div></div></div>
+      <div class="pair"><span class="rl">40대</span><div class="pairbars">
+        <div class="mini"><div class="b old" style="width:73%"></div><span class="v">0.182</span></div>
+        <div class="mini"><div class="b new" style="width:20%"></div><span class="v">0.049</span></div></div></div>
+      <div class="pair"><span class="rl">50대</span><div class="pairbars">
+        <div class="mini"><div class="b old" style="width:6%"></div><span class="v">0.014</span></div>
+        <div class="mini"><div class="b new" style="width:1%"></div><span class="v">0.001</span></div></div></div>
+      <div class="pair"><span class="rl">60대</span><div class="pairbars">
+        <div class="mini"><div class="b old" style="width:1%"></div><span class="v">0.001</span></div>
+        <div class="mini"><div class="b new" style="width:2%"></div><span class="v">0.003</span></div></div></div>
+      <div class="scale"><span>0</span><span>세대별 K · 가로 스케일 최대 0.25</span><span>0.25</span></div>
+    </div>
+    <p class="bignote" style="margin-top:18px">더 큰 진실: <b>어느 변형도 K&lt;1이 아니다.</b> 천장이 0.24(30대 강제). 강제든 선택이든 바이럴이 안 된다 — 문제는 공유 <i>방식</i>이 아니라 <b>"퍼뜨릴 의지 자체가 20~40%"</b>라는 것. <mark>만들기 전 시뮬이 K를 반토막 낼 변경을 막았다.</mark></p>
+  </section>
+
+  <!-- 4. 결제 전환 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">03</span><h2>실제로 지갑을 여는 8%, 그리고 20대</h2></div>
+    <p class="sec-lead">경쟁앱의 실제 결제 방식을 같은 300명에게 겪게 한 결과. 평균 실결제 8.3%(≈업계 실측 8%). 유일하게 2배인 세대는 <b>20대(16%)</b> — K도 20대, 결제도 20대로 비치헤드가 겹친다.</p>
+    <div class="card">
+      <div class="chart">
+        <div class="row"><span class="rl">10대</span><div class="track"><div class="bar a" style="width:50%">8%</div></div></div>
+        <div class="row"><span class="rl">20대</span><div class="track"><div class="bar a" style="width:100%">16%</div></div></div>
+        <div class="row"><span class="rl">30대</span><div class="track"><div class="bar a" style="width:50%">8%</div></div></div>
+        <div class="row"><span class="rl">40대</span><div class="track"><div class="bar a" style="width:50%">8%</div></div></div>
+        <div class="row"><span class="rl">50대</span><div class="track"><div class="bar a" style="width:50%">8%</div></div></div>
+        <div class="row"><span class="rl">60대</span><div class="track"><div class="bar a" style="width:12.5%">2%</div></div></div>
+      </div>
+      <div class="scale"><span>0%</span><span>세대별 실결제율 (any_pay)</span><span>16%</span></div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card">
+        <div class="lab" style="font-size:12px;letter-spacing:.04em;color:var(--ink-faint);text-transform:uppercase;font-weight:600">20대 — 어느 방식이 팔리나</div>
+        <div class="chart" style="margin-top:14px">
+          <div class="row"><span class="rl">감정심층</span><div class="track"><div class="bar a" style="width:100%">9%</div></div></div>
+          <div class="row"><span class="rl">대화형</span><div class="track"><div class="bar a" style="width:89%">8%</div></div></div>
+          <div class="row"><span class="rl">전체잠금</span><div class="track"><div class="bar n" style="width:78%">7%</div></div></div>
+        </div>
+        <p class="note" style="font-size:13px;color:var(--ink-soft);margin:14px 0 0">단순 "전체결과 잠금"이 가장 약하다. <b>불안을 콕 집은 감정질문·대화</b>가 더 팔린다.</p>
+      </div>
+      <div class="card">
+        <div class="lab" style="font-size:12px;letter-spacing:.04em;color:var(--ink-faint);text-transform:uppercase;font-weight:600">가격 — 거의 전원 990원</div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin:16px 0 4px"><span class="num" style="font-size:44px;font-weight:800;letter-spacing:-.03em;color:var(--accent)">990</span><span style="font-size:20px;font-weight:700;color:var(--ink-soft)">원</span></div>
+        <p class="note" style="font-size:13px;color:var(--ink-soft);margin:6px 0 0">결제자 거의 전원이 990을 고름(육공사주 3,000·찐사주 990 실측과 정합). <b>1,900·3,900은 오직 감정이 절박한 니치</b>(40대 부부·자녀, 50대 자녀 결혼)에서만 열림.</p>
+      </div>
+    </div>
+    <div class="quote">🔑 결제 트리거 만장일치 = <b>특정 관계의 감정 절박함.</b> "그 사람도 날 좋아할까"(20대), "우리 부부 어떻게 지내야"(40대), "아들 결혼운"(50대). 실측 결제 문법과 동일 — 불안을 찌른 <b>직후</b>가 지갑 여는 순간.</div>
+  </section>
+
+  <!-- 5. 공유 벡터 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">04</span><h2>진짜 획득 엔진은 궁합 링크가 아니다</h2></div>
+    <p class="sec-lead">벤치마크 1위 포스텔러의 실제 무료 유입 채널은 커플 궁합이 아니라 <b>"도화테스트·꽃MBTI" 같은 버리는 재미 심리테스트</b>를 인스타·카톡에 뿌린 것. 페르소나도 6세대 중 4세대(특히 20대)가 이걸 가장 많이 퍼뜨렸다.</p>
+    <div class="tblwrap card">
+      <table class="tbl">
+        <thead><tr><th>세대</th><th>실결제</th><th>잘 팔린 방식</th><th>최강 공유 벡터</th></tr></thead>
+        <tbody>
+          <tr><td>10대</td><td class="n">8%</td><td>감정절박</td><td class="hi">재미 심리테스트</td></tr>
+          <tr><td>20대</td><td class="n hi">16%</td><td>감정심층 &gt; 대화 &gt; 잠금</td><td class="hi">재미 심리테스트</td></tr>
+          <tr><td>30대</td><td class="n">8%</td><td>잠금해제</td><td>궁합 링크</td></tr>
+          <tr><td>40대</td><td class="n">8%</td><td>감정절박 → 3,900</td><td class="hi">재미 심리테스트 (카톡방)</td></tr>
+          <tr><td>50대</td><td class="n">8%</td><td>자녀 절박 (결제창 피싱벽)</td><td>궁합 링크</td></tr>
+          <tr><td>60대</td><td class="n">2%</td><td>거의 0 (활성화·피싱벽)</td><td>재미 심리테스트</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="bignote" style="margin-top:18px">함의: 강제공유 커플루프는 <b>결제 트리거·리텐션엔 좋지만 획득 최상단엔 약하다.</b> 상대도 필요 없고 혼자 즉시 공유되는 <mark>가벼운 심리테스트를 획득 프론트로</mark> 얹고, 커플 궁합은 수익 코어로 두는 게 실측이 가리키는 구조.</p>
+  </section>
+
+  <!-- 6. 권장 구조 -->
+  <section>
+    <div class="sec-h"><span class="sec-n">05</span><h2>실측이 가리키는 구조</h2></div>
+    <div class="flow">
+      <div class="step"><div class="k">① 획득</div><h3>혼자 되는 재미 테스트</h3><p>도화테스트형. 상대 없이 즉시 공유 → 인스타·카톡 프론트로 신규 유입.</p><span class="tag">공유 벡터 1위</span></div>
+      <div class="step"><div class="k">② 코어</div><h3>커플 궁합</h3><p>강제공유 = 결제 + 바이럴 이중 엔진. K를 만드는 유일한 구조라 유지.</p><span class="tag">K 엔진</span></div>
+      <div class="step"><div class="k">③ 수익</div><h3>감정질문 990원 잠금</h3><p>"그 사람 속마음"을 잠금. 절박 니치엔 3,900 심층. "더 보기"는 최악.</p><span class="tag">전환 최고</span></div>
+      <div class="step"><div class="k">④ 타깃</div><h3>전부 20대</h3><p>K도 결제(16%)도 유일한 2배 세대. 획득·수익 비치헤드가 겹침.</p><span class="tag">비치헤드</span></div>
+    </div>
+    <div class="caveat" style="border-color:var(--crit);background:var(--crit-bg);margin-top:20px">🚧 <b>단, 8% 천장이라 K가 먼저다.</b> 결제 설계를 먼저 붙이면 무의미 — 8% × 작은 트래픽은 0. 소수를 태워 진짜 K를 재는 게 여전히 최우선 관문.</div>
+  </section>
+
+  <!-- 7. moat -->
+  <section>
+    <div class="sec-h"><span class="sec-n">06</span><h2>"대화형 상담 moat" 판정</h2></div>
+    <div class="card">
+      <div class="vrow"><span class="chip warn">시뮬</span><div class="vt">대화 재구매 의향은 <b>10·20대만 높음</b>(35%/25%), 40~60대는 0~1%. 실결제는 20대 8%가 최고.</div></div>
+      <div class="vrow"><span class="chip crit">실측</span><div class="vt">순수 AI 대화 <b>헬로우봇은 재구매엔 강했지만 재무 실패 → 2025 매각·폐업.</b> 진짜 큰돈(점신 <b>매출 830억</b>)은 AI가 아니라 <b>"사람" 실시간 상담</b>에서 나온다.</div></div>
+      <div class="vrow"><span class="chip good">판정</span><div class="vt"><b>대화형 moat은 "돈 버는 사업"이 아니라 "결제 트리거·리텐션 레이어"다.</b> 단독 수익 엔진으론 약함. 얹을 순 있어도 여기에 걸지 말 것.</div></div>
+    </div>
+    <p class="src">참고 실측 · 점신 매출 830억·영업익 100억·기업가치 1,800억(IPO 준비) / 포스텔러 8.6M·연매출 100억·12개월 재구매 65.6%·유료침투 8% / 헬로우봇 크래프톤 산하 2025 매각 / 결제 스윗스팟 990~3,900원 · 코인 선충전 단건 소진 / 시장 규모 약 1.4조원.</p>
+  </section>
+
+  <div class="foot">
+    여덟 글자 성장 진단 · 300 페르소나 시뮬 + 경쟁앱 실측 리서치 · 2026-08-16 · <b>시뮬 K는 방향 신호이며 실측 K를 대체하지 않는다.</b>
+  </div>
+
+</div>
