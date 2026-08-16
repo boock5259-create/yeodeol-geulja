@@ -685,12 +685,13 @@ function fusionReport(A,B,comp){
         `한 명은 머리, 한 명은 가슴 — "왜 그렇게 차갑냐 / 왜 그렇게 감정적이냐"가 단골 레퍼토리예요.`)},
     {h:"부딪힐 때", body:
       `${comp.relLabel} 관계라 근본 궁합은 ${sajuGood?'좋은 편이에요':'노력이 필요한 편이에요'}. `
-      +(jpGap?`계획형과 즉흥형이 섞여 "약속을 정하자 vs 그때 봐서"에서 마찰이 나요. 한쪽이 조금 맞춰주면 돼요.`:
-        `둘 다 ${ma[3]==='J'?'계획형이라 방향만 맞으면 착착 굴러가고, 틀어지면 둘 다 고집이 세져요':'즉흥형이라 편한데 중요한 결정이 자꾸 미뤄질 수 있어요'}.`)},
+      +(jpGap?`계획형과 즉흥형이 섞여 "약속을 정하자 vs 그때 봐서"에서 마찰이 나요. `:
+        `둘 다 ${ma[3]==='J'?'계획형이라 방향만 맞으면 착착 굴러가고, 틀어지면 둘 다 고집이 세져요':'즉흥형이라 편한데 중요한 결정이 자꾸 미뤄질 수 있어요'}. `)
+      +`👉 감정이 확 올라오면 그 자리에서 결론 내지 말고, "10분만 식히고 다시 얘기하자" 한마디를 둘의 규칙으로 정해두세요.`},
     {h:"오래가려면", body:
-      (bothF?`감정이 상했을 땐 그날 안에 짧게라도 풀기 — 미루면 눈덩이처럼 커져요.`:
-       bothT?`가끔은 "논리 말고 그냥 서운했어"라고 감정을 그대로 말해주기.`:
-       `${josa(A.mbti[2]==='F'?na:nb,'iga')} 감정을 말할 땐 해결책보다 공감 먼저, ${josa(A.mbti[2]==='T'?na:nb,'iga')} 냉정해 보일 땐 무심한 게 아니라 방식이 다른 것뿐.`)}
+      `👉 `+(bothF?`감정이 상했을 땐 그날 안에 짧게라도 풀기 — 미루면 눈덩이처럼 커져요. 서로 "지금 마음 어때?" 한 번씩 물어봐 주세요.`:
+       bothT?`가끔은 "논리 말고 그냥 서운했어"라고 감정을 그대로 말해주기. 상대의 팩트 정리는 애정 표현이라고 받아들이면 편해요.`:
+       `${josa(A.mbti[2]==='F'?na:nb,'iga')} 감정을 말할 땐 해결책보다 공감 먼저(그냥 "속상했겠다" 한마디), ${josa(A.mbti[2]==='T'?na:nb,'iga')} 냉정해 보일 땐 무심한 게 아니라 방식이 다른 것뿐이에요.`)}
   ];
   return {teaser, sections};
 }
@@ -707,7 +708,7 @@ function tenGodGroup(dayOh, otherOh){
   if(KE[dayOh]===otherOh) return '재성';     // 내가 剋 → 재물·인연
   return '관성';                              // 상대가 나를 剋 → 책임·직장·기회
 }
-function yearInfo(y){ const g=yearGanji(y,6,1); return {y, gan:GAN_OH[g.gan], jiChar:JI[g.ji], gz:GAN[g.gan]+JI[g.ji]}; }
+function yearInfo(y){ const g=yearGanji(y,6,1); return {y, gan:GAN_OH[g.gan], ganChar:GAN[g.gan], ganIdx:g.gan, jiChar:JI[g.ji], gz:GAN[g.gan]+JI[g.ji]}; }
 function nowYear(){ try{ return new Date().getFullYear(); }catch(e){ return 2026; } }
 
 /* 주제 정의: rate(god)→good|ok|care, note(god,이름)→설명, tip(P)→맞춤 팁, wide=큰 카드 */
@@ -798,6 +799,26 @@ const JI_TEXTURE={
   신:'재치와 기회 포착이 빛나는 흐름이에요.', 유:'디테일을 야무지게 매만지는 해예요.',
   술:'신뢰와 의리가 힘이 되는 흐름이에요.', 해:'한 매듭을 편안히 마무리하기 좋아요.'
 };
+// 그 해 천간(10) 고유 결 — 해마다 천간이 한 칸씩 바뀌므로 인접 5년이 절대 안 겹침(본문 복붙 방지)
+const GAN_YEAR={
+  갑:'큰 나무처럼 쭉 뻗어나가는', 을:'덩굴처럼 유연하게 감기는',
+  병:'태양처럼 활짝 드러나는', 정:'촛불처럼 은근히 데우는',
+  무:'큰 산처럼 묵직하게 버티는', 기:'텃밭처럼 차곡차곡 일구는',
+  경:'쇳덩이처럼 밀어붙이는', 신:'보석처럼 예리하게 다듬는',
+  임:'큰 물처럼 크게 굽이치는', 계:'이슬비처럼 촉촉이 스며드는'
+};
+// 그 해가 왜 이런지(십성=근거)를 한마디로 — "왜"에 답하는 리드
+const GOD_LEAD={
+  인성:'배움·안정의 기운(인성)이 드는 해라', 식상:'표현·활동의 기운(식상)이 도는 해라',
+  재성:'현실·재물의 기운(재성)이 드는 해라', 관성:'책임·자리의 기운(관성)이 드는 해라',
+  비겁:'경쟁·자기중심 기운(비겁)이 센 해라'
+};
+// 판정(good/ok/care)에 따른 "그래서 뭘 하라"는 실행 한 줄
+const ACT_BY_RATE={
+  good:'👉 망설이지 말고 이 해에 먼저 움직이세요.',
+  ok:'👉 무리하지 말고 착실히 준비해두기 좋아요.',
+  care:'👉 큰 결정은 한 박자 늦추고, 지키는 데 집중하세요.'
+};
 // 그 해 지지가 내 일지와 맺는 관계 → 해마다 다른 뉘앙스(인접 년도 복붙 방지)
 function jiRelNote(P, jiChar){
   if(YUKHAP[P.ilji]===jiChar) return '이 해엔 관계·인연의 합(合)이 들어 유독 살가워져요.';
@@ -812,9 +833,13 @@ function analyzeTopic(P, key){
   for(let i=0;i<5;i++){
     const yi=yearInfo(y0+i); const god=tenGodGroup(P.ilganOh, yi.gan);
     const g=swap?romanceRemap(god):god;            // 판정·문구는 성별 보정된 십성으로
-    let rate=T.rate(g), note=T.note(g)+' '+jiRelNote(P, yi.jiChar);
-    if(T.marriageBonus && YUKHAP[P.ilji]===yi.jiChar){ rate='good'; note+=' 💍'; }
-    years.push({y:yi.y, gz:yi.gz, god, rate, note});
+    let rate=T.rate(g);
+    const isMarriageYear = T.marriageBonus && YUKHAP[P.ilji]===yi.jiChar;
+    if(isMarriageYear) rate='good';
+    // 근거(십성) + 천간별 고유 결(연도 복붙 방지) + 주제 해석 + 지지 뉘앙스 + 실행 한 줄
+    let note=`${GOD_LEAD[g]||''}, ${GAN_YEAR[yi.ganChar]||''} 결이 함께 흘러요. ${T.note(g)} ${jiRelNote(P, yi.jiChar)} ${ACT_BY_RATE[rate]||''}`;
+    if(isMarriageYear) note+=' 💍';
+    years.push({y:yi.y, gz:yi.gz, god, rate, note:note.replace(/\s+/g,' ').trim()});
   }
   const best=years.find(x=>x.rate==='good')||years.find(x=>x.rate==='ok')||years[0];
   const care=years.find(x=>x.rate==='care');
@@ -1170,17 +1195,22 @@ function compatibility(A,B,rel){
 }
 function personaChips(P){ return OH_PERSONA[P.dominant].map(t=>`<span class="chip">${t}</span>`).join(""); }
 const OH_LACK_ADVICE={
-  목:'새 도전 앞에서 살짝 등을 떠밀어줄 사람이 곁에 있으면 훨씬 힘이 나요.',
-  화:'속마음을 겉으로 표현하는 연습을 하면 타고난 매력이 배로 살아나요.',
-  토:'가끔은 마음의 중심을 잡아줄 안정적인 루틴 하나가 큰 버팀목이 돼요.',
-  금:'맺고 끊어야 할 땐 조금 더 단호해져도 괜찮아요 — 그게 오히려 편해져요.',
-  수:'꽉 찬 일정 사이에 혼자 재충전할 여백을 챙겨야 오래 반짝여요.'
+  목:['새 도전 앞에선 곁에서 등 떠밀어줄 사람 하나가 큰 힘이 돼요.','시작을 미루는 편이라 작게라도 첫발부터 떼는 습관이 잘 맞아요.','자랄 여지를 스스로 열어두면 훨씬 크게 뻗어요.'],
+  화:['속마음을 겉으로 표현하는 연습을 하면 타고난 매력이 배로 살아나요.','열정을 꺼내 보일수록 사람이 모여요 — 감추면 오히려 손해예요.','가끔은 앞장서서 분위기를 띄우는 역할이 잘 어울려요.'],
+  토:['중심을 잡아줄 안정적인 루틴 하나가 큰 버팀목이 돼요.','휩쓸리지 않게 "내 페이스"를 정해두면 한결 편해져요.','믿을 사람·믿을 자리 하나를 오래 두는 게 힘이 돼요.'],
+  금:['맺고 끊을 땐 조금 더 단호해져도 괜찮아요 — 그게 오히려 편해요.','원칙을 하나 세워두면 결정이 빨라지고 후회가 줄어요.','거절도 연습이에요 — 선을 그을수록 관계가 깔끔해져요.'],
+  수:['꽉 찬 일정 사이 혼자 재충전할 여백을 챙겨야 오래 반짝여요.','깊이 생각할 시간을 확보하면 판단이 훨씬 정확해져요.','다 통제하려 들기보다 유연하게 흘려보내도 괜찮아요.']
 };
 // 한 사람 성향 풀이 = 일간 물상 × 강/약 오행 × MBTI 4축 × 겉속 결합 (조합 수백 가지)
 function personLong(P){
   const m=GAN_MULSANG[P.ilgan], dom=OH_PERSONA[P.dominant];
   let s=`${m.d}처럼 <b>${m.k[0]}</b> 면과 <b>${m.k[1]}</b> 면을 함께 지녔어요. 타고난 기운은 <b>${OH_KO[P.dominant]}(${P.dominant})</b>${josaP(P.dominant,'iga')} 가장 강해 <b>${OH_TRAIT[P.dominant]}</b> 사람이에요.`;
-  if(P.lacking!==P.dominant) s+=` 다만 <b>${OH_KO[P.lacking]}(${P.lacking})</b> 기운은 옅은 편이에요. ${OH_LACK_ADVICE[P.lacking]}`;
+  if(P.lacking!==P.dominant){
+    const pool=OH_LACK_ADVICE[P.lacking];
+    const seed=P.ilgan+P.ilji+(P.month?P.month.gan+P.month.ji:0)+(P.year?P.year.ji:0); // 여러 기둥 합=두 사람 겹칠 확률↓
+    const adv=Array.isArray(pool)?pool[seed%pool.length]:pool;
+    s+=` 강한 <b>${OH_KO[P.dominant]}</b> 기운에 비해 <b>${OH_KO[P.lacking]}(${P.lacking})</b> 기운은 옅어, ${adv}`;
+  }
   const mt=P.mbti;
   if(MBTI_LIST.includes(mt)){
     s+=`<br><br>성격으로 보면 <b>${mt}</b> — ${MB_SOLO[mt[0]]}, ${MB_SOLO[mt[1]]} 사람이에요. 연애에선 ${MB_SOLO[mt[2]]}, ${MB_SOLO[mt[3]]} 편이죠.`;
