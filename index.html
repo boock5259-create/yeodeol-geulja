@@ -1016,7 +1016,11 @@ const DEEP_TOPIC_GUIDE={
 };
 function buildDeepPrompt(key){
   const c=buildDeepContext(key); if(!c) return null;
-  return `${DEEP_AI_RULES}\n\n## 주제: ${DEEP_TOPICS[key].icon} ${DEEP_TOPICS[key].title}\n지시: ${DEEP_TOPIC_GUIDE[key]||''}\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"본문"}`;
+  const isCouple=!!(window._ctx&&window._ctx.A);
+  const coupleNote=isCouple
+    ? `\n[커플 필수] 세운5년은 ${c.세운기준} 기준이지만 이건 '두 사람의' 리포트다. 상대(B)의 여덟글자·물상·강약오행도 실제로 분석에 엮어라 — B를 한 번만 언급하고 넘기지 말고, 각 국면에서 A와 B의 물상·오행이 어떻게 작용하는지(끌림·긴장·보완)를 최소 2~3곳에서 구체적으로 짚어라. 마지막 문단은 두 사람 모두에게 주는 실천 조언.`
+    : '';
+  return `${DEEP_AI_RULES}\n\n## 주제: ${DEEP_TOPICS[key].icon} ${DEEP_TOPICS[key].title}\n지시: ${DEEP_TOPIC_GUIDE[key]||''}${coupleNote}\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"본문"}`;
 }
 // 성격×사주(fusion) 전용 컨텍스트/프롬프트
 function buildFusionContext(){

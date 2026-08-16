@@ -21,7 +21,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT   = int(os.environ.get("YG_AI_PORT", "8788"))
 TOKEN  = os.environ.get("YG_AI_TOKEN", "")          # 비우면 토큰 검사 안 함(로컬 전용이라 OK)
-CLAUDE = os.environ.get("YG_CLAUDE_CMD", "claude -p")
+CLAUDE = os.environ.get("YG_CLAUDE_CMD", "claude -p --model claude-sonnet-5")  # Opus(73s)→Sonnet5(55s), 품질 유지
 MOCK   = "--mock" in sys.argv
 TIMEOUT= int(os.environ.get("YG_AI_TIMEOUT", "120"))
 # ── 터널로 외부 노출 시 남용 방지 ──
