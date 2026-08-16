@@ -995,7 +995,7 @@ function buildFusionPrompt(){
   const c=buildFusionContext(); if(!c) return null;
   return `${DEEP_AI_RULES}\n\n## 주제: 🧬 성격 × 사주 심층 리포트\n지시: 두 사람의 MBTI(겉)와 사주 오행(속)을 엮어 4개 챕터를 써라 — "겉과 속"(각자 MBTI와 사주가 일치/반전하는지), "둘이 만나면"(에너지·소통 화학반응), "부딪힐 때"(갈등 패턴과 푸는 법), "오래가려면"(구체적 관계 팁). 각 챕터는 굵은 제목 + **3~4문장**으로 구체적이고 깊게(두 사람 물상·오행·MBTI를 실제로 엮어서). 관계유형(연인/친구/가족/직장)에 맞는 톤으로. 전체 700~1000자.\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"겉과 속 — ...\\n\\n둘이 만나면 — ...\\n\\n부딪힐 때 — ...\\n\\n오래가려면 — ..."}`;
 }
-function fusionCacheKey(){ const c=buildFusionContext(); try{ return 'ai:fusion:'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).slice(0,140); }catch(e){ return 'ai:fusion'; } }
+function fusionCacheKey(){ return 'ai:fusion:'+ctxSig(); }
 // 종합 심층 리포트(플래그십, 7섹션·길게) — 커플 전용
 function buildFullContext(){
   const ctx=window._ctx; if(!ctx||!ctx.A) return null; const A=ctx.A,B=ctx.B;
@@ -1021,8 +1021,13 @@ ${JSON.stringify(c,null,1)}
 ## 출력
 아래 JSON만 반환(다른 말·코드블록 금지): {"title":"두 사람을 한마디로 요약한 제목","body":"【${nA}님은 어떤 사람】\\n내용...\\n\\n【${nB}님은 어떤 사람】\\n내용... (7섹션 전부)"}`;
 }
-function fullCacheKey(){ const c=buildFullContext(); try{ return 'ai:full:'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).slice(0,140); }catch(e){ return 'ai:full'; } }
-function aiCacheKey(key){ const c=buildDeepContext(key); try{ return 'ai:'+key+':'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).slice(0,140); }catch(e){ return 'ai:'+key; } }
+function fullCacheKey(){ return 'ai:full:'+ctxSig(); }
+// 캐시 서명 = 두 사람 여덟글자·MBTI·성별 + 관계유형 (모든 구분 요소 포함, 충돌 방지)
+function pillSig(S){ try{ return pillStr(S)+'/'+(S.mbti||'')+'/'+(S.sex||''); }catch(e){ return 'x'; } }
+function ctxSig(){ const ctx=window._ctx||window._solo; if(!ctx) return 'x';
+  if(ctx.A) return pillSig(ctx.A)+'::'+pillSig(ctx.B)+'::'+((ctx.comp&&ctx.comp.rel)||'love');
+  return pillSig(ctx.S); }
+function aiCacheKey(key){ return 'ai:'+key+':'+ctxSig(); }
 function aiCacheGet(k){ try{ return JSON.parse(localStorage.getItem('yg_ai_cache')||'{}')[k]||null; }catch(e){ return null; } }
 function aiCacheSet(k,v){ try{ const o=JSON.parse(localStorage.getItem('yg_ai_cache')||'{}'); o[k]=v; localStorage.setItem('yg_ai_cache',JSON.stringify(o)); }catch(e){} }
 function parseAI(text){
