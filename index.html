@@ -984,7 +984,7 @@ async function saveDeepReport(){
    ============================================================ */
 /* 배포판 기본 AI 엔드포인트(형님 PC 워커의 cloudflared 터널). 비우면 localhost 전용.
    터널 URL이 바뀌면 이 한 줄만 고쳐 redeploy. localStorage 'yg_ai_endpoint'로 개별 오버라이드 가능. */
-const AI_DEFAULT_ENDPOINT="https://latter-surprising-prepared-completing.trycloudflare.com/deep";
+const AI_DEFAULT_ENDPOINT="https://supplies-tba-brand-developed.trycloudflare.com/deep";
 const AI_TOKEN="yg8glp-2026-k9f3a7q";
 function aiEndpoint(){ return localStorage.getItem('yg_ai_endpoint') || AI_DEFAULT_ENDPOINT || 'http://127.0.0.1:8788/deep'; }
 function aiOn(){ return localStorage.getItem('yg_ai_off')!=='1'; }
@@ -1077,7 +1077,7 @@ function parseAI(text){
 async function aiDeepFetch(key, promptOverride, ckOverride){
   const prompt=promptOverride||buildDeepPrompt(key); if(!prompt) return null;
   const ck=ckOverride||aiCacheKey(key); const cached=aiCacheGet(ck); if(cached) return cached;
-  const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),90000);
+  const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),118000); // 워커 120s 직전까지 대기(90s는 Sonnet+B깊이서 초과→템플릿 폴백)
   try{
     const res=await fetch(aiEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,token:AI_TOKEN}),signal:ctrl.signal});
     clearTimeout(to); const j=await res.json(); if(!j.ok) throw new Error(j.error||'fail');
