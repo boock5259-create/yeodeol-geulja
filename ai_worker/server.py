@@ -24,6 +24,11 @@ TOKEN  = os.environ.get("YG_AI_TOKEN", "")          # 비우면 토큰 검사 �
 CLAUDE = os.environ.get("YG_CLAUDE_CMD", "claude -p")
 MOCK   = "--mock" in sys.argv
 TIMEOUT= int(os.environ.get("YG_AI_TIMEOUT", "120"))
+# ── 터널로 외부 노출 시 남용 방지 ──
+SIGNATURE = os.environ.get("YG_AI_SIG", '여덟 글자')  # 앱이 만든 프롬프트에만 있는 서명(없으면 거부)
+MAXLEN    = int(os.environ.get("YG_AI_MAXLEN", "12000"))
+MAXCONC   = int(os.environ.get("YG_AI_MAXCONC", "3"))
+_sema     = threading.BoundedSemaphore(MAXCONC)
 
 def run_claude(prompt: str) -> str:
     """프롬프트를 stdin으로 claude -p 에 넣고 stdout 반환."""
@@ -65,6 +70,12 @@ class H(BaseHTTPRequestHandler):
         prompt = (data.get("prompt") or "").strip()
         if not prompt:
             return self._json(400, {"ok": False, "error": "empty prompt"})
+        if len(prompt) > MAXLEN:
+            return self._json(413, {"ok": False, "error": "prompt too long"})
+        if SIGNATURE and SIGNATURE not in prompt:          # 앱이 만든 프롬프트가 아니면 거부
+            return self._json(403, {"ok": False, "error": "bad signature"})
+        if not _sema.acquire(blocking=False):              # 동시 실행 제한
+            return self._json(429, {"ok": False, "error": "busy"})
         try:
             text = run_claude(prompt)
             self._json(200, {"ok": True, "text": text})
@@ -72,6 +83,8 @@ class H(BaseHTTPRequestHandler):
             self._json(504, {"ok": False, "error": "claude timeout"})
         except Exception as e:
             self._json(500, {"ok": False, "error": str(e)[:400]})
+        finally:
+            _sema.release()
 
     def _json(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")

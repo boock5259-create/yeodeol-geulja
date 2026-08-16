@@ -872,7 +872,11 @@ function closeDeep(){ const m=document.getElementById('deepModal'); if(m){ m.cla
    웹이 그라운딩 컨텍스트+주제 프롬프트를 만들어 워커로 POST → 렌더.
    입력 해시 캐싱 · 실패/미연결 시 템플릿 폴백(절대 안 깨짐).
    ============================================================ */
-function aiEndpoint(){ return localStorage.getItem('yg_ai_endpoint') || 'http://127.0.0.1:8788/deep'; }
+/* 배포판 기본 AI 엔드포인트(형님 PC 워커의 cloudflared 터널). 비우면 localhost 전용.
+   터널 URL이 바뀌면 이 한 줄만 고쳐 redeploy. localStorage 'yg_ai_endpoint'로 개별 오버라이드 가능. */
+const AI_DEFAULT_ENDPOINT="https://latter-surprising-prepared-completing.trycloudflare.com/deep";
+const AI_TOKEN="yg8glp-2026-k9f3a7q";
+function aiEndpoint(){ return localStorage.getItem('yg_ai_endpoint') || AI_DEFAULT_ENDPOINT || 'http://127.0.0.1:8788/deep'; }
 function aiOn(){ return localStorage.getItem('yg_ai_off')!=='1'; }
 function esc(s){ return String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
 function pillStr(S){ const a=[S.year,S.month,S.day]; if(S.hour)a.push(S.hour); return a.map(p=>GAN[p.gan]+JI[p.ji]).join(' '); }
@@ -930,7 +934,7 @@ async function aiDeepFetch(key, promptOverride, ckOverride){
   const ck=ckOverride||aiCacheKey(key); const cached=aiCacheGet(ck); if(cached) return cached;
   const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),90000);
   try{
-    const res=await fetch(aiEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt}),signal:ctrl.signal});
+    const res=await fetch(aiEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,token:AI_TOKEN}),signal:ctrl.signal});
     clearTimeout(to); const j=await res.json(); if(!j.ok) throw new Error(j.error||'fail');
     const p=parseAI(j.text); if(p&&p.body){ aiCacheSet(ck,p); track('ai_deep_ok',{topic:key}); return p; }
     return null;
