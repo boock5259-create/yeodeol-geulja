@@ -1042,7 +1042,7 @@ const OH_LACK_ADVICE={
 // 한 사람 성향 풀이 = 일간 물상 × 강/약 오행 × MBTI 4축 × 겉속 결합 (조합 수백 가지)
 function personLong(P){
   const m=GAN_MULSANG[P.ilgan], dom=OH_PERSONA[P.dominant];
-  let s=`${m.d}처럼 <b>${m.k[0]}</b> 면과 <b>${m.k[1]}</b> 면을 함께 지녔어요. 타고난 기운은 <b>${OH_KO[P.dominant]}(${P.dominant})</b>가 가장 강해 <b>${dom[0]}</b>·${dom[2]}인 사람이에요.`;
+  let s=`${m.d}처럼 <b>${m.k[0]}</b> 면과 <b>${m.k[1]}</b> 면을 함께 지녔어요. 타고난 기운은 <b>${OH_KO[P.dominant]}(${P.dominant})</b>${josaP(P.dominant,'iga')} 가장 강해 <b>${dom[0]}</b>·${dom[2]}인 사람이에요.`;
   if(P.lacking!==P.dominant) s+=` 다만 <b>${OH_KO[P.lacking]}(${P.lacking})</b> 기운은 옅은 편이에요. ${OH_LACK_ADVICE[P.lacking]}`;
   const mt=P.mbti;
   if(MBTI_LIST.includes(mt)){
