@@ -21,7 +21,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT   = int(os.environ.get("YG_AI_PORT", "8788"))
 TOKEN  = os.environ.get("YG_AI_TOKEN", "")          # 비우면 토큰 검사 안 함(로컬 전용이라 OK)
-CLAUDE = os.environ.get("YG_CLAUDE_CMD", "claude -p --model claude-sonnet-5")  # Opus(73s)→Sonnet5(55s), 품질 유지
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_EMPTY_MCP = os.path.join(_HERE, "empty-mcp.json")  # 빈 MCP 설정 = 사용자 MCP서버(Canva·Figma·Notion 등) 로딩 스킵
+# 모델: Sonnet5(품질/속도 균형). 빠르게 하려면 YG_CLAUDE_CMD로 haiku 지정.
+# --strict-mcp-config + 빈 mcp-config = 콜드스타트 ~11s→~4.5s (워커는 MCP 도구 안 씀)
+# --disallowedTools: 순수 텍스트생성만 시킴(에이전트 툴 왕복·임시파일 생성 방지 → ~55s→~37s + 출력 깨끗)
+_NO_TOOLS = "Bash Write Edit Read Glob Grep WebFetch WebSearch NotebookEdit TodoWrite Task"
+CLAUDE = os.environ.get("YG_CLAUDE_CMD", f'claude -p --model claude-sonnet-5 --strict-mcp-config --mcp-config "{_EMPTY_MCP}" --disallowedTools {_NO_TOOLS}')
 MOCK   = "--mock" in sys.argv
 TIMEOUT= int(os.environ.get("YG_AI_TIMEOUT", "120"))
 # ── 터널로 외부 노출 시 남용 방지 ──
