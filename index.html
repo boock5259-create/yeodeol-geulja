@@ -365,7 +365,7 @@ gtag('js', new Date());
       </div>
 
       <div class="card pad namecard fade">
-        <div class="nc-h">✦ 이름의 뜻 · 여덟 글자</div>
+        <div class="nc-h">✦ '여덟 글자'가 뭐예요?</div>
         <div class="nc-grid">
           <div class="nc-col"><div class="nc-cell">천</div><div class="nc-cell">지</div><div class="nc-lab">년</div></div>
           <div class="nc-col"><div class="nc-cell">천</div><div class="nc-cell">지</div><div class="nc-lab">월</div></div>
@@ -391,7 +391,7 @@ gtag('js', new Date());
         <button class="btn kko" onclick="shareLink()">그 사람에게 보내기</button>
         <div class="steps">
           <div class="step"><span class="n">1</span><div>그 사람이 링크를 열면 <b style="color:var(--ink)">자기 생일</b>을 넣어요.</div></div>
-          <div class="step"><span class="n">2</span><div>두 사람 정보가 모여야 <b style="color:var(--ink)">궁합 결과</b>가 열립니다.</div></div>
+          <div class="step"><span class="n">2</span><div>두 사람 정보가 모여야 <b style="color:var(--ink)">궁합 결과</b>가 열려요.</div></div>
           <div class="step"><span class="n">3</span><div>상대가 열면 <b style="color:var(--ink)">둘의 궁합 카드</b>가 나와요 — 캡처해서 서로 공유! 💛</div></div>
         </div>
       </div>
@@ -534,6 +534,8 @@ const _JOSA={eunneun:["은","는"],iga:["이","가"],eulreul:["을","를"],gwawa
 function josaP(w,t){ const m=_JOSA[t]||["",""]; return hasJong(w)?m[0]:m[1]; }
 function josa(w,t){ return (w||"")+josaP(w,t); }
 const eunneun=n=>josaP(n,"eunneun");
+// 으로/로: 받침 없거나 ㄹ받침이면 '로', 그 외 '으로'
+function euroroP(w){ const s=String(w||''); const c=s.charCodeAt(s.length-1); if(c<0xAC00||c>0xD7A3)return '로'; const j=(c-0xAC00)%28; return (j===0||j===8)?'로':'으로'; }
 // 대상자 존칭('님')
 function hon(name,fb){ return name? name+"님" : (fb||""); }
 // 오행 커스텀 심볼(골드 라인, 이모지 대체)
@@ -595,7 +597,7 @@ const MBTI_T={E:["밖으로 에너지를 내는","활발"],I:["안으로 에너�
 /* MBTI 4축 × 연애 서술 조각 — 모두 관형형(…는/…ㄴ)이라 사주 문장에 자연스럽게 얹힘. 사주(일간10·강약오행)×MBTI16 = 조합 수백~수천 */
 const MB_SOLO={
   E:'사람들 속에서 반짝이고 좋아하는 티도 잘 못 숨기는',
-  I:'조용히 곁을 지키며 마음을 천천히, 대신 깊게 여는',
+  I:'곁을 조용히 지키며 마음을 천천히 깊게 여는',
   N:'눈빛·말투 같은 미묘한 신호로 마음을 읽고 “우리 사이의 의미”를 곱씹는',
   S:'연락·기념일·행동처럼 눈에 보이는 것으로 사랑을 확인하는',
   T:'다툴 땐 감정보다 “뭐가 문제였는지”부터 정리하려는',
@@ -663,15 +665,15 @@ function fusionReport(A,B,comp){
     {h:"겉과 속", body:`<b>${na}</b> — ${pa.verdict}. ${pa.note}<br><b>${nb}</b> — ${pb.verdict}. ${pb.note}`},
     {h:"둘이 만나면", body:
       (bothE?`둘 다 에너지가 밖으로 향해 함께 있으면 시끌벅적 즐겁지만, 각자 혼자 충전할 시간도 필요해요. `:
-       bothI?`둘 다 안으로 고이는 편이라 편안하고 조용한 데이트가 잘 맞아요. 대신 먼저 표현하는 연습이 필요. `:
+       bothI?`둘 다 안으로 고이는 편이라 편안하고 조용한 데이트가 잘 맞아요. 대신 먼저 표현하는 연습이 필요해요. `:
        `한 명은 밖으로, 한 명은 안으로 — 에너지 리듬이 달라 서로 배터리를 채워주기도, 지치게도 해요. `)
-      +(bothF?`둘 다 마음으로 판단해서 공감은 빠른데, 팩트를 놓칠 수 있어요.`:
+      +(bothF?`둘 다 마음으로 판단해서 공감은 빠른데, 정작 현실적인 부분을 놓칠 수 있어요.`:
         bothT?`둘 다 논리로 가서 대화가 깔끔한 대신, 가끔 서운함이 쌓여도 말 안 할 수 있어요.`:
-        `한 명은 머리, 한 명은 가슴 — "왜 그렇게 차갑냐 / 왜 그렇게 감정적이냐"가 단골 레퍼토리.`)},
+        `한 명은 머리, 한 명은 가슴 — "왜 그렇게 차갑냐 / 왜 그렇게 감정적이냐"가 단골 레퍼토리예요.`)},
     {h:"부딪힐 때", body:
-      `${comp.relLabel} 관계라 근본 궁합은 ${sajuGood?'좋은 편':'노력이 필요한 편'}. `
-      +(jpGap?`계획형과 즉흥형이 섞여 "약속을 정하자 vs 그때 봐서"에서 마찰이 나요. 한쪽이 조금 맞춰주면 됩니다.`:
-        `둘 다 ${ma[3]==='J'?'계획형이라 방향만 맞으면 착착, 틀어지면 둘 다 고집':'즉흥형이라 편한데 중요한 결정이 자꾸 미뤄질 수 있어요'}.`)},
+      `${comp.relLabel} 관계라 근본 궁합은 ${sajuGood?'좋은 편이에요':'노력이 필요한 편이에요'}. `
+      +(jpGap?`계획형과 즉흥형이 섞여 "약속을 정하자 vs 그때 봐서"에서 마찰이 나요. 한쪽이 조금 맞춰주면 돼요.`:
+        `둘 다 ${ma[3]==='J'?'계획형이라 방향만 맞으면 착착 굴러가고, 틀어지면 둘 다 고집이 세져요':'즉흥형이라 편한데 중요한 결정이 자꾸 미뤄질 수 있어요'}.`)},
     {h:"오래가려면", body:
       (bothF?`감정이 상했을 땐 그날 안에 짧게라도 풀기 — 미루면 눈덩이처럼 커져요.`:
        bothT?`가끔은 "논리 말고 그냥 서운했어"라고 감정을 그대로 말해주기.`:
@@ -741,7 +743,7 @@ const DEEP_TOPICS={
     note:(g)=>({
       관성:'직장·조직의 기운이 드는 해 — 합격·입사·자리 잡기에 좋아요 💼',
       인성:'자격·시험·추천이 붙는 해. 서류·면접에서 귀인이 도와요.',
-      식상:'실력·포트폴리오가 빛나는 해 — 이직·프리랜스 도전에 유리.',
+      식상:'실력·포트폴리오가 빛나는 해 — 이직·프리랜서 도전에 유리.',
       재성:'현실 성과·연봉 협상에 좋은 해. 실속을 챙기세요.',
       비겁:'경쟁이 치열하고 마음이 붕 뜨기 쉬운 해 — 잦은 이직은 신중히.'}[g]),
     tip:()=>'“좋은 해”에 <b>먼저 움직이세요</b>. 관성·인성 해엔 지원서를, 식상 해엔 결과물을 세상에 내미는 게 통해요.'},
@@ -971,6 +973,8 @@ const OH_PERSONA={
   토:["듬직하고 안정적","포용력","현실 감각"], 금:["단호하고 원칙적","깔끔한 매듭","자존심"],
   수:["지혜롭고 유연","속이 깊음","적응력"]
 };
+// 오행별 깔끔한 형용사구(문장에 '~한 사람'으로 자연스럽게 붙음). 성향 칩(OH_PERSONA)은 별도로 노출
+const OH_TRAIT={목:"곧게 뻗어 나가는", 화:"밝고 뜨거운", 토:"듬직하고 안정된", 금:"단단하고 원칙 있는", 수:"깊고 유연한"};
 /* ── 관계 유형(rel)별 톤 — 연애 기본, 친구/가족/직장은 어색함 제거 ── */
 const REL_META={
   love:  {label:'연인·썸', badge:same=>same?'동성 궁합':'이성 궁합'},
@@ -1003,7 +1007,7 @@ function compatibility(A,B,rel){
   // ② 오행 관계 (물상으로 서사)
   if(a===b){ score+=10; relLabel="닮은 결"; relKey="same";
     const sameLine=(mA.n===mB.n)?`둘 다 <b>${mA.n}</b>의 결이라`:`<b>${mA.n}</b>${josaP(mA.n,'gwawa')} <b>${mB.n}</b> — 뿌리는 같은 <b>${OH_KO[a]}</b>의 기운이라`;
-    reasons.push(`${sameLine}, ${mA.k[0]} 서로를 금세 알아봐요 — 말하지 않아도 통하는 편안함.`); }
+    reasons.push(`${sameLine}, ${mA.k[0]} 결을 서로에게서 금세 알아봐요 — 말하지 않아도 통하는 편안함.`); }
   else if(SHENG[b]===a){ score+=22; relLabel="채워주는 사이"; relKey="b_to_a";
     reasons.push(`<b>${mB.n}</b>${josaP(mB.n,'iga')} <b>${mA.n}</b>${josaP(mA.n,'eulreul')} 살아나게 하듯, ${nB}${josaP(nB,'iga')} 곁에 있으면 ${nA}${josaP(nA,'eunneun')} 유독 기운이 나요.`); }
   else if(SHENG[a]===b){ score+=20; relLabel="이끌어주는 사이"; relKey="a_to_b";
@@ -1015,7 +1019,7 @@ function compatibility(A,B,rel){
   const ai=JI[A.ilji], bi=JI[B.ilji];
   if(YUKHAP[ai]===bi){ score+=16; reasons.push(`태어난 날의 기운이 <span class="hl">육합(${ai}·${bi})</span>으로 짝을 이뤄요 — 옛말로 천생연분이라 부르는 궁합의 별.`); }
   else if(CHUNG[ai]===bi){ score-=10; reasons.push(`태어난 날의 기운이 <span class="hl">충(${ai}·${bi})</span> — 가끔 세게 부딪혀요. 근데 그만큼 서로에게 무뎌지지 않죠.`); }
-  else if(ai===bi){ score+=6; reasons.push(`태어난 날의 기운이 <span class="hl">${ai}</span>로 똑같아 — 비슷한 리듬으로 살아온 사람들이에요.`); }
+  else if(ai===bi){ score+=6; reasons.push(`태어난 날의 기운이 <span class="hl">${ai}</span>${euroroP(ai)} 똑 닮았어요 — 비슷한 리듬으로 살아온 사람들이에요.`); }
 
   // 오행 보완 (내가 부족한 걸 상대가 채워주나)
   if(A.lacking===B.dominant){ score+=8; reasons.push(`<span class="hl">${A.name||"나"}</span>에게 부족한 ${josa(OH_KO[A.lacking],'eulreul')} ${josa(B.name||"상대",'iga')} 넉넉히 가졌어요 — 서로의 빈칸을 메우는 짝.`); }
@@ -1042,7 +1046,7 @@ const OH_LACK_ADVICE={
 // 한 사람 성향 풀이 = 일간 물상 × 강/약 오행 × MBTI 4축 × 겉속 결합 (조합 수백 가지)
 function personLong(P){
   const m=GAN_MULSANG[P.ilgan], dom=OH_PERSONA[P.dominant];
-  let s=`${m.d}처럼 <b>${m.k[0]}</b> 면과 <b>${m.k[1]}</b> 면을 함께 지녔어요. 타고난 기운은 <b>${OH_KO[P.dominant]}(${P.dominant})</b>${josaP(P.dominant,'iga')} 가장 강해 <b>${dom[0]}</b>·${dom[2]}인 사람이에요.`;
+  let s=`${m.d}처럼 <b>${m.k[0]}</b> 면과 <b>${m.k[1]}</b> 면을 함께 지녔어요. 타고난 기운은 <b>${OH_KO[P.dominant]}(${P.dominant})</b>${josaP(P.dominant,'iga')} 가장 강해 <b>${OH_TRAIT[P.dominant]}</b> 사람이에요.`;
   if(P.lacking!==P.dominant) s+=` 다만 <b>${OH_KO[P.lacking]}(${P.lacking})</b> 기운은 옅은 편이에요. ${OH_LACK_ADVICE[P.lacking]}`;
   const mt=P.mbti;
   if(MBTI_LIST.includes(mt)){
@@ -1391,7 +1395,7 @@ function renderResult(a,b){
       <div class="sec fusionSec">
         <h3>MBTI × 사주</h3>
         <div class="mbtirow"><span class="mbtibadge">${A.name||"나"} · ${A.mbti}</span><span class="mbx">×</span><span class="mbtibadge">${B.name||"상대"} · ${B.mbti}</span></div>
-        <div class="scorebreak"><b>사주 ${comp.sajuScore}</b> <span class="op">${comp.mbtiDelta>0?'＋':comp.mbtiDelta<0?'－':'±'}</span> <b>성격 ${comp.mbtiDelta===0?0:Math.abs(comp.mbtiDelta)}</b> <span class="op">=</span> <b class="fin">종합 ${comp.score}점</b><div class="sbnote">${comp.mbtiDelta>0?'MBTI 궁합이 점수를 <b>+'+comp.mbtiDelta+'점</b> 올렸어요':comp.mbtiDelta<0?'성격 차이가 점수를 <b>'+comp.mbtiDelta+'점</b> 낮췄어요':'성격 궁합은 딱 중립이에요'} · 사주엔 없던 MBTI까지 합친 점수예요</div></div>
+        <div class="scorebreak"><b>사주 ${comp.sajuScore}</b> <span class="op">${comp.mbtiDelta>0?'＋':comp.mbtiDelta<0?'－':'±'}</span> <b>성격 ${comp.mbtiDelta===0?0:Math.abs(comp.mbtiDelta)}</b> <span class="op">＝</span> <b class="fin">종합 ${comp.score}점</b><div class="sbnote">${comp.mbtiDelta>0?'MBTI 궁합이 점수를 <b>+'+comp.mbtiDelta+'점</b> 올렸어요':comp.mbtiDelta<0?'성격 차이가 점수를 <b>'+Math.abs(comp.mbtiDelta)+'점</b> 낮췄어요':'성격 궁합은 딱 중립이에요'} · 사주엔 없던 MBTI까지 합친 점수예요</div></div>
         <div class="para" style="margin-top:12px">${fus.teaser}</div>
         <div class="para">${eiPair(A.mbti,B.mbti)} ${nsPair(A.mbti,B.mbti)}</div>
         <div class="para">${tfPair(A.mbti,B.mbti)} ${jpPair(A.mbti,B.mbti)}</div>
