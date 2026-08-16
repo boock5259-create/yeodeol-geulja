@@ -4,3 +4,7 @@ node_modules
 env.txt
 *.token
 *.env
+
+# python
+__pycache__/
+*.pyc
