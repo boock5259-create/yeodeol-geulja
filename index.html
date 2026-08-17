@@ -213,6 +213,16 @@ gtag('js', new Date());
   .pay-legal{margin-top:14px;font-size:11px;color:var(--ink-faint);text-align:left;line-height:1.6}
   .pay-legal b{color:var(--ink-dim);font-weight:600}
   .lockp{font-size:12.5px;font-weight:800;color:var(--gold-soft)}
+  .policy-card{max-width:520px;max-height:82vh;overflow-y:auto;text-align:left}
+  .policy-title{font-weight:800;font-size:18px;margin:2px 0 12px;color:var(--gold-soft)}
+  .policy-body{font-size:13px;color:var(--ink-dim);line-height:1.7}
+  .policy-body p{margin:0 0 11px}
+  .policy-body b{color:var(--ink)}
+  .policy-body .bizblock{margin-top:14px;padding-top:12px;border-top:1px solid var(--card-line);font-size:11.5px;color:var(--ink-faint)}
+  .plink{color:var(--gold-soft);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .footlinks{margin-top:9px;font-size:12px;display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+  .footbiz{margin-top:8px;font-size:10.5px;color:var(--ink-faint);line-height:1.6;max-width:520px;margin:8px auto 0}
+  .pbiz{color:var(--ink-faint)}
   .pay-processing{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink)}
   .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -453,7 +463,7 @@ gtag('js', new Date());
     <!-- ===== VIEW RESULT ===== -->
     <section id="viewResult" class="hidden"></section>
 
-    <div class="foot">여덟 글자 · 재미로 보는 사주 궁합</div>
+    <div class="foot" id="mainFoot">여덟 글자 · 재미로 보는 사주 궁합</div>
   </div>
 
   <!-- 익명 결제 모달 -->
@@ -470,6 +480,15 @@ gtag('js', new Date());
       <div class="pay-note">카드·간편결제(토스페이·카카오페이 등)는 결제창에서 선택 · 로그인 없이 결제</div>
       <div class="pay-processing hidden" id="payProcessing"><div class="spinner"></div><div id="payStatus">결제창을 여는 중…</div></div>
       <div class="pay-legal" id="payLegal">결제대행: 토스페이먼츠 · <b>[상호·사업자등록번호·통신판매업 신고번호·연락처 — 등록 후 삽입]</b> · 환불/개인정보/이용약관 [준비 중]<br>본 리포트는 통계·역학 기반의 <b>재미·참고용</b> 콘텐츠이며 과학적·의학적 근거가 없습니다.</div>
+    </div>
+  </div>
+
+  <!-- 약관·정책 모달 -->
+  <div class="modal-overlay hidden" id="policyModal">
+    <div class="modal-card policy-card">
+      <div class="modal-x" onclick="closePolicy()">✕</div>
+      <div class="policy-title"></div>
+      <div class="policy-body"></div>
     </div>
   </div>
 
@@ -1516,7 +1535,7 @@ function showSolo(){
         <div class="branch-sub">링크 하나 보내면 둘의 점수가 열려요</div>
         <button class="btn violet sm" onclick="makeLink()">그 사람과 궁합 링크 만들기</button>
       </div>
-      <div class="disc">재미로 보는 사주입니다 · 생년월일은 저장되지 않아요</div>
+      <div class="disc">재미로 보는 사주예요 · 사주는 이 브라우저에서 계산돼요 · AI 심층분석 이용 시에만 사주 데이터가 분석 서버로 전송돼요(저장 안 함)</div>
     </div>`;
   show("viewResult");
 }
@@ -1722,7 +1741,7 @@ function renderResult(a,b){
         <div class="branch-sub">엄마랑은? 전 남친이랑은? 팀장이랑은? — 네 다른 궁합은 몇 점일까</div>
         <button class="btn violet sm" onclick="branchNew()">나도 다른 사람이랑 궁합 보기</button>
       </div>
-      <div class="disc">재미로 보는 사주 궁합입니다 · 생년월일시는 브라우저에서만 계산되고 어디에도 저장되지 않아요 · 결과는 참고용이에요</div>
+      <div class="disc">재미로 보는 사주 궁합이에요 · 사주는 브라우저에서 계산돼요 · AI 심층분석 이용 시에만 사주 데이터가 분석 서버로 전송돼요(저장 안 함) · 결과는 참고용</div>
     </div>`;
   show("viewResult");
   animateScore(comp.score);
@@ -1864,8 +1883,56 @@ async function genAI(){
 }
 
 /* 진입 라우팅 */
+/* ── 법적 고지: 사업자 정보(등록 후 채움) + 정책 4종 ── */
+const BIZ={ name:'[상호명]', ceo:'[대표자]', regno:'[사업자등록번호]', mailorder:'[통신판매업 신고번호]', addr:'[사업장 주소]', tel:'[연락처]', email:'[문의 이메일]', host:'Vercel Inc.' };
+function bizInfoHTML(){ return `상호 <b>${BIZ.name}</b> · 대표 ${BIZ.ceo} · 사업자등록번호 ${BIZ.regno} · 통신판매업신고 ${BIZ.mailorder} · ${BIZ.addr} · ${BIZ.tel} · ${BIZ.email} · 호스팅 ${BIZ.host}`; }
+function policyLinksHTML(){ return `<a class="plink" onclick="showPolicy('terms')">이용약관</a> · <a class="plink" onclick="showPolicy('privacy')">개인정보처리방침</a> · <a class="plink" onclick="showPolicy('refund')">환불정책</a> · <a class="plink" onclick="showPolicy('disclaimer')">면책</a>`; }
+const POLICIES={
+  terms:{ t:'이용약관', h:`
+    <p><b>제1조 (목적)</b> 본 약관은 '여덟 글자'(이하 "서비스")가 제공하는 사주·MBTI 기반 궁합·운세 콘텐츠 및 AI 심층 리포트의 이용조건과 절차를 규정합니다.</p>
+    <p><b>제2조 (서비스 내용)</b> 서비스는 이용자가 입력한 생년월일시·성별·MBTI를 바탕으로 궁합 결과와 AI 심층 리포트를 제공합니다. 모든 결과는 오락·참고 목적이며 과학적 근거가 없습니다.</p>
+    <p><b>제3조 (유료 서비스·결제)</b> 종합 리포트 777원, 개별 심층 리포트 333원이며, 결제는 토스페이먼츠(주)를 통해 처리됩니다. 카드·간편결제를 지원합니다.</p>
+    <p><b>제4조 (청약철회·환불)</b> 디지털콘텐츠 특성에 따른 청약철회·환불은 별도의 「환불·청약철회 정책」에 따릅니다.</p>
+    <p><b>제5조 (면책)</b> 운세·궁합 결과는 어떠한 결정의 근거가 될 수 없으며, 서비스는 결과의 정확성을 보증하지 않고 이용으로 인한 손해에 책임지지 않습니다.</p>
+    <p><b>제6조 (금지행위)</b> 이용자는 서비스의 정상적 운영을 방해하는 행위(부정 접근, 자동화 공격, 타인 정보 도용 등)를 해서는 안 됩니다.</p>
+    <p><b>제7조 (준거법·분쟁)</b> 본 약관은 대한민국 법령에 따라 해석되며, 분쟁은 관할 법원에 따릅니다.</p>
+    <p class="bizblock">{BIZ}</p>` },
+  privacy:{ t:'개인정보처리방침', h:`
+    <p><b>1. 수집 항목</b><br>이름 또는 애칭, 생년월일시, 성별, MBTI(선택). 결제 시 결제정보는 토스페이먼츠(주)가 처리하며 당사는 카드번호 등 결제 상세정보를 보유하지 않습니다.</p>
+    <p><b>2. 수집·이용 목적</b><br>사주 궁합 계산 및 AI 심층 리포트 생성·제공.</p>
+    <p><b>3. 보유·이용기간</b><br>입력 정보는 당사 서버에 저장하지 않으며 결과 계산·리포트 생성 후 파기됩니다. 결제·거래 기록은 「전자상거래법」 등 관련 법령에 따라 보존될 수 있습니다.</p>
+    <p><b>4. 제3자 제공</b><br>이용자의 개인정보를 제3자에게 제공하지 않습니다.</p>
+    <p><b>5. 처리위탁 및 국외 이전</b><br>AI 심층 리포트 생성을 위해 사주 데이터(여덟 글자·MBTI 등)를 AI 분석 서버(Anthropic, 미국)로 전송하여 리포트 생성에만 이용하며 저장하지 않습니다. 결제 처리는 토스페이먼츠(주)에 위탁합니다.</p>
+    <p><b>6. 공유 링크 안내</b><br>궁합 초대·결과 공유 링크를 생성·전송할 경우, 링크에 입력하신 생년월일 등이 포함되어 상대방에게 전달됩니다. 공유 여부는 이용자가 직접 선택합니다.</p>
+    <p><b>7. 이용자의 권리</b><br>정보는 저장되지 않으므로 브라우저를 닫으면 소멸합니다.</p>
+    <p><b>8. 만 14세 미만</b><br>만 14세 미만 아동의 개인정보는 수집하지 않습니다.</p>
+    <p><b>9. 개인정보 보호책임자</b><br>문의처는 하단 사업자 정보의 이메일입니다.</p>
+    <p class="bizblock">{BIZ}</p>` },
+  refund:{ t:'환불·청약철회 정책', h:`
+    <p><b>1. 청약철회의 제한 (디지털콘텐츠)</b><br>결제 즉시 생성·열람되는 디지털콘텐츠(AI 심층 리포트)는 「전자상거래법」 제17조제2항 및 콘텐츠산업진흥법에 따라, 이용자가 결제 전 청약철회 제한에 동의하고 <b>리포트 열람을 시작한 경우 청약철회(환불)가 제한</b>됩니다.</p>
+    <p><b>2. 환불이 가능한 경우</b><br>· 결제 후 리포트를 <b>아직 열람하지 않은</b> 경우: 결제일로부터 7일 이내 청약철회 및 전액 환불<br>· 시스템 오류로 리포트가 정상 생성되지 않은 경우(예: AI 분석 실패로 기본 결과만 표시): 전액 환불<br>· 중복 결제·오결제: 전액 환불</p>
+    <p><b>3. 환불 절차</b><br>아래 사업자 정보의 연락처·이메일로 요청 시 결제수단 취소를 통해 처리됩니다.</p>
+    <p class="bizblock">{BIZ}</p>` },
+  disclaimer:{ t:'면책 고지', h:`
+    <p>본 서비스가 제공하는 사주·궁합·운세·MBTI 분석 결과는 통계와 명리(命理)·성격유형론에 기반한 <b>오락 및 참고용 콘텐츠</b>로, 과학적·의학적·법률적 근거를 갖지 않습니다.</p>
+    <p>연애·결혼·이직·건강·재무 등 <b>어떠한 중요한 결정의 근거로 삼지 마십시오.</b> 서비스는 결과의 정확성을 보증하지 않으며, 이용으로 인해 발생한 직간접적 손해에 책임지지 않습니다.</p>
+    <p>어려운 상황에서는 전문가(의료·법률·심리 상담 등)의 도움을 받으시기 바랍니다.</p>` }
+};
+function showPolicy(key){ const p=POLICIES[key]; const m=document.getElementById('policyModal'); if(!p||!m) return false;
+  m.querySelector('.policy-title').textContent=p.t;
+  m.querySelector('.policy-body').innerHTML=p.h.replace(/\{BIZ\}/g, bizInfoHTML());
+  const c=m.querySelector('.modal-card'); if(c)c.scrollTop=0;
+  m.classList.remove('hidden'); document.body.style.overflow='hidden'; return false; }
+function closePolicy(){ const m=document.getElementById('policyModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; } }
+function bizFilled(){ return !/^\s*\[/.test(BIZ.name); }   // 사업자정보 채워졌나(placeholder면 false)
+function renderLegal(){
+  const bizFoot = bizFilled() ? `<div class="footbiz">${bizInfoHTML()}</div>` : '';
+  const f=document.getElementById('mainFoot'); if(f) f.innerHTML=`여덟 글자 · 재미로 보는 사주 궁합<div class="footlinks">${policyLinksHTML()}</div>${bizFoot}`;
+  const bizPay = bizFilled() ? `<br><span class="pbiz">${bizInfoHTML()}</span>` : `<br><span class="pbiz">[사업자 정보 — 등록 후 표시]</span>`;
+  const pl=document.getElementById('payLegal'); if(pl) pl.innerHTML=`결제대행: 토스페이먼츠(주) · ${policyLinksHTML()}${bizPay}<br>본 리포트는 통계·역학 기반의 <b>재미·참고용</b> 콘텐츠이며 과학적·의학적 근거가 없습니다.`; }
 function boot(){
   document.getElementById("formA").innerHTML=personForm("A", "", true);
+  renderLegal();
   const q=new URLSearchParams(location.search);
   if(q.get('pay')){ handlePayReturn(q); return; }   // 토스 결제창 복귀(?pay=success/fail) → 결과 복원+승인
   const h=location.hash;
