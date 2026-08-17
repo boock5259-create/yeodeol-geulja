@@ -529,8 +529,8 @@ function yearGanji(y,m,d){
 }
 function monthJi(m,d){
   let mm=m; if(d < SOLAR_START[m]) mm=m-1; if(mm<1)mm=12;   // 절입 전이면 전달
-  // 정월=寅(2). 달→월지: (mm+1)%12  (2월→인2, 1월→축1, 12월→자0)
-  return ((mm+1)%12+12)%12;
+  // 정월=寅(2). 달→월지: mm%12  (2월→인2, 1월→축1, 12월→자0)
+  return (mm%12+12)%12;
 }
 function monthGan(yearGan, mJi){
   // 오호둔: 갑기년→丙寅월 시작
@@ -858,7 +858,7 @@ function analyzeTopic(P, key){
     // 근거(십성) + 천간별 고유 결(연도 복붙 방지) + 주제 해석 + 지지 뉘앙스 + 실행 한 줄
     let note=`${GOD_LEAD[g]||''}, ${GAN_YEAR[yi.ganChar]||''} 결이 함께 흘러요. ${T.note(g)} ${jiRelNote(P, yi.jiChar)} ${ACT_BY_RATE[rate]||''}`;
     if(isMarriageYear) note+=' 💍';
-    years.push({y:yi.y, gz:yi.gz, god, rate, note:note.replace(/\s+/g,' ').trim()});
+    years.push({y:yi.y, gz:yi.gz, god:g, rate, note:note.replace(/\s+/g,' ').trim()});
   }
   const best=years.find(x=>x.rate==='good')||years.find(x=>x.rate==='ok')||years[0];
   const care=years.find(x=>x.rate==='care');
@@ -905,6 +905,7 @@ function deepMenuHTML(scope, rel){
   </div>`;
 }
 
+let _deepReq=0;  // 열 때마다 증가 → 늦게 도착한 AI 응답이 다른 주제 화면 덮어쓰는 것 방지
 function openDeep(key){
   if(key==='fusion'){ openFusionDeep(); return; }
   if(key==='full'){ openFullReport(); return; }
@@ -938,7 +939,8 @@ function openDeep(key){
     ${mbLine}
     <div class="dm-foot" id="deepFoot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 당신의 사주 여덟 글자를 실시간으로 읽어</b> 훨씬 더 깊고 개인화된 분석을 써 드려요 (예정가 777원)</div>`;
   showDeepModal();
-  if(useAI) aiDeepFetch(key).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
+  const _rq=++_deepReq;
+  if(useAI) aiDeepFetch(key).then(p=>{ if(_rq!==_deepReq) return; const slot=document.getElementById('deepAnalysis'); if(!slot) return;
     if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 당신의 사주 여덟 글자를 실시간으로 읽어</b> 쓴 리포트예요 · 정식 버전 예정가 777원'; }
     else slot.innerHTML=templateLead; });
 }
@@ -953,7 +955,8 @@ function openFusionDeep(){
     <div id="deepAnalysis">${useAI?aiLoaderHTML():templateFus}</div>
     <div class="dm-foot" id="deepFoot">지금은 <b>무료 체험판</b>이에요 · 정식 버전은 <b>AI가 두 분의 MBTI×사주를 실시간으로 엮어</b> 새로 써 드려요 (예정가 777원)</div>`;
   showDeepModal();
-  if(useAI) aiDeepFetch('fusion', buildFusionPrompt(), fusionCacheKey()).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
+  const _rq=++_deepReq;
+  if(useAI) aiDeepFetch('fusion', buildFusionPrompt(), fusionCacheKey()).then(p=>{ if(_rq!==_deepReq) return; const slot=document.getElementById('deepAnalysis'); if(!slot) return;
     if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 두 분의 MBTI×사주를 실시간으로 엮어</b> 쓴 리포트예요 · 정식 예정가 777원'; }
     else slot.innerHTML=templateFus; });
 }
@@ -971,12 +974,16 @@ function openFullReport(){
     <div id="deepAnalysis">${useAI?aiLoaderHTML():templateFull}</div>
     <div class="dm-foot" id="deepFoot">✨ 두 사람의 사주·성격을 한 편으로 엮은 종합 리포트예요 · 정식 예정가 777원</div>`;
   showDeepModal();
-  if(useAI) aiDeepFetch('full', buildFullPrompt(), fullCacheKey()).then(p=>{ const slot=document.getElementById('deepAnalysis'); if(!slot) return;
+  const _rq=++_deepReq;
+  if(useAI) aiDeepFetch('full', buildFullPrompt(), fullCacheKey()).then(p=>{ if(_rq!==_deepReq) return; const slot=document.getElementById('deepAnalysis'); if(!slot) return;
     if(p&&p.body){ renderAISlot(p); const f=document.getElementById('deepFoot'); if(f) f.innerHTML='✨ 방금 <b>AI가 두 분의 사주·성격을 한 편으로 엮어</b> 쓴 종합 리포트예요 · 정식 예정가 777원'; }
     else slot.innerHTML=templateFull; });
 }
 function showDeepModal(){ const m=document.getElementById('deepModal'); if(m){ m.classList.remove('hidden'); document.body.style.overflow='hidden'; m.querySelector('.modal-card').scrollTop=0; } }
-function closeDeep(){ const m=document.getElementById('deepModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; } }
+function closeDeep(){ _deepReq++;   // 닫으면 진행 중 AI 응답 무효화
+  if(_ygLoadTimer){ clearInterval(_ygLoadTimer); _ygLoadTimer=null; }
+  if(window._deepAbort){ try{window._deepAbort.abort();}catch(e){} window._deepAbort=null; }
+  const m=document.getElementById('deepModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; } }
 // 심층 리포트를 이미지로 따로 저장(전체 내용 캡처, ✕·저장버튼은 숨김)
 async function saveDeepReport(){
   const card=document.querySelector('#deepModal .modal-card');
@@ -1091,12 +1098,12 @@ function aiCacheSet(k,v){ try{ const o=JSON.parse(localStorage.getItem('yg_ai_ca
 function parseAI(text){
   if(!text) return null; let t=String(text).trim().replace(/^```(?:json)?\s*/i,'').replace(/```$/,'').trim();
   const tryj=s=>{ try{ const o=JSON.parse(s); if(o&&o.body) return {title:o.title||'',body:String(o.body)}; }catch(e){} return null; };
-  return tryj(t) || (t.match(/\{[\s\S]*\}/)&&tryj(t.match(/\{[\s\S]*\}/)[0])) || {title:'',body:t.slice(0,1400)};
+  return tryj(t) || (t.match(/\{[\s\S]*\}/)&&tryj(t.match(/\{[\s\S]*\}/)[0])) || {title:'',body:t.slice(0,2600)};
 }
 async function aiDeepFetch(key, promptOverride, ckOverride){
   const prompt=promptOverride||buildDeepPrompt(key); if(!prompt) return null;
   const ck=ckOverride||aiCacheKey(key); const cached=aiCacheGet(ck); if(cached) return cached;
-  const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),118000); // 워커 120s 직전까지 대기(90s는 Sonnet+B깊이서 초과→템플릿 폴백)
+  const ctrl=new AbortController(); window._deepAbort=ctrl; const to=setTimeout(()=>ctrl.abort(),118000); // 워커 120s 직전까지 대기(90s는 Sonnet+B깊이서 초과→템플릿 폴백). closeDeep서 abort 가능하게 저장.
   try{
     const res=await fetch(aiEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,token:AI_TOKEN}),signal:ctrl.signal});
     clearTimeout(to); const j=await res.json(); if(!j.ok) throw new Error(j.error||'fail');
@@ -1272,8 +1279,7 @@ function personLong(P){
 }
 
 /* 타임라인: 2026 남은 달 중 고비/기회 */
-const MON_JI=[0,1,2,3,4,5,6,7,8,9,10,11]; // placeholder
-function monthJiOf(monthNum){ return ((monthNum+1)%12+12)%12; } // 2월→인
+function monthJiOf(monthNum){ return (monthNum%12+12)%12; } // 2월→인
 function timeline(A,B){
   const now=new Date(); const out=[];
   const couple=[JI[A.ilji],JI[B.ilji]];
@@ -1405,8 +1411,9 @@ function readPerson(prefix){
   const rel=(document.getElementById(prefix+"_rel")||{}).value||"love";
   return {name,birth,hour,mbti:MBTI_LIST.includes(mbti)?mbti:"",sex,rel};
 }
-function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
-function dec(s){ try{ return JSON.parse(decodeURIComponent(escape(atob(s)))); }catch(e){ return null; } }
+// URL-safe base64: +→-, /→_, 패딩(=) 제거 → 메신저에서 안 깨짐. dec는 구버전 링크(+/=)도 호환.
+function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function dec(s){ try{ s=String(s).replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return JSON.parse(decodeURIComponent(escape(atob(s)))); }catch(e){ return null; } }
 
 function show(id){ ["viewA","viewLink","viewB","viewResult"].forEach(v=>document.getElementById(v).classList.add("hidden")); document.getElementById(id).classList.remove("hidden"); window.scrollTo(0,0); }
 
@@ -1636,7 +1643,7 @@ function renderResult(a,b){
       <div class="sec fusionSec">
         <h3>MBTI × 사주</h3>
         <div class="mbtirow"><span class="mbtibadge">${A.name||"나"} · ${A.mbti}</span><span class="mbx">×</span><span class="mbtibadge">${B.name||"상대"} · ${B.mbti}</span></div>
-        <div class="scorebreak"><b>사주 ${comp.sajuScore}</b> <span class="op">${comp.mbtiDelta>0?'＋':comp.mbtiDelta<0?'－':'±'}</span> <b>성격 ${comp.mbtiDelta===0?0:Math.abs(comp.mbtiDelta)}</b> <span class="op">＝</span> <b class="fin">종합 ${comp.score}점</b><div class="sbnote">${comp.mbtiDelta>0?'MBTI 궁합이 점수를 <b>+'+comp.mbtiDelta+'점</b> 올렸어요':comp.mbtiDelta<0?'성격 차이가 점수를 <b>'+Math.abs(comp.mbtiDelta)+'점</b> 낮췄어요':'성격 궁합은 딱 중립이에요'} · 사주엔 없던 MBTI까지 합친 점수예요</div></div>
+        <div class="scorebreak"><b>사주 ${comp.sajuScore}</b> <span class="op">${(comp.score-comp.sajuScore)>0?'＋':(comp.score-comp.sajuScore)<0?'－':'±'}</span> <b>성격 ${Math.abs(comp.score-comp.sajuScore)}</b> <span class="op">＝</span> <b class="fin">종합 ${comp.score}점</b><div class="sbnote">${(comp.score-comp.sajuScore)>0?'MBTI 궁합이 점수를 <b>+'+(comp.score-comp.sajuScore)+'점</b> 올렸어요':(comp.score-comp.sajuScore)<0?'성격 차이가 점수를 <b>'+Math.abs(comp.score-comp.sajuScore)+'점</b> 낮췄어요':'성격 궁합은 딱 중립이에요'} · 사주엔 없던 MBTI까지 합친 점수예요</div></div>
         <div class="para" style="margin-top:12px">${fus.teaser}</div>
         <div class="para">${eiPair(A.mbti,B.mbti)} ${nsPair(A.mbti,B.mbti)}</div>
         <div class="para">${tfPair(A.mbti,B.mbti)} ${jpPair(A.mbti,B.mbti)}</div>
