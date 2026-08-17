@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.4/lunar.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://js.tosspayments.com/v2/standard"></script>
 <!-- 카카오 JS SDK: 카카오톡 공유(로그인·비즈앱 불필요, JS키+플랫폼 도메인 등록만) -->
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.6/kakao.min.js"
         integrity="sha384-WAtVcQYcmTO/N+C1N+1m6Gp8qxh+3NlnP7X1U7qP6P5dQY/MsRBNTh+e1ahJrkEm"
@@ -205,6 +206,13 @@ gtag('js', new Date());
   .pay-m.card{background:rgba(255,255,255,.08);color:var(--ink);border:1px solid var(--card-line)}
   .pay-note{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:14px}
   .pay-proto{margin-top:12px;font-size:11.5px;color:var(--gold-soft);background:rgba(232,195,126,.08);border:1px dashed rgba(232,195,126,.35);border-radius:12px;padding:10px 12px;line-height:1.5}
+  .pay-consent{display:flex;gap:9px;align-items:flex-start;text-align:left;margin:16px 0 4px;font-size:12.5px;color:var(--ink-dim);line-height:1.5;cursor:pointer}
+  .pay-consent input{width:18px;height:18px;flex:0 0 auto;margin-top:1px;accent-color:var(--gold);cursor:pointer}
+  .pay-consent b{color:var(--gold-soft)}
+  #payGo:disabled{opacity:.45;cursor:not-allowed;filter:none;box-shadow:none}
+  .pay-legal{margin-top:14px;font-size:11px;color:var(--ink-faint);text-align:left;line-height:1.6}
+  .pay-legal b{color:var(--ink-dim);font-weight:600}
+  .lockp{font-size:12.5px;font-weight:800;color:var(--gold-soft)}
   .pay-processing{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink)}
   .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -452,17 +460,16 @@ gtag('js', new Date());
   <div class="modal-overlay hidden" id="payModal">
     <div class="modal-card">
       <div class="modal-x" onclick="closePayModal()">✕</div>
-      <div class="pay-title">심층 융합 리포트</div>
-      <div class="pay-sub">MBTI × 사주를 하나로 엮은 4챕터 전체</div>
+      <div class="pay-title">AI 심층 리포트</div>
+      <div class="pay-sub">두 사람 여덟 글자·성격을 AI가 실시간으로 읽어 쓰는 심층 리포트 전체</div>
       <div class="pay-amount">777<span>원</span></div>
+      <label class="pay-consent"><input type="checkbox" id="payConsent" onchange="onConsent()"><span>결제 즉시 리포트가 열리는 디지털 콘텐츠로, <b>열람을 시작하면 청약철회(환불)가 제한</b>됨에 동의합니다.</span></label>
       <div class="pay-methods" id="payMethods">
-        <button class="pay-m kakao" onclick="doPay('카카오페이')">카카오페이로 결제</button>
-        <button class="pay-m toss" onclick="doPay('토스페이')">토스페이로 결제</button>
-        <button class="pay-m card" onclick="doPay('카드')">신용·체크카드</button>
+        <button class="btn" id="payGo" onclick="doPay()" disabled>동의 후 결제하기</button>
       </div>
-      <div class="pay-note">로그인 없이 바로 결제 · 결과는 이 브라우저에서 바로 열려요</div>
-      <div class="pay-processing hidden" id="payProcessing"><div class="spinner"></div><div id="payStatus">결제 진행 중…</div></div>
-      <div class="pay-proto">⚠️ 프로토타입 — 실제로 결제되지 않습니다. 실서비스에선 토스페이먼츠·카카오페이 연동(사업자등록 필요)으로 대체됩니다.</div>
+      <div class="pay-note">카드·간편결제(토스페이·카카오페이 등)는 결제창에서 선택 · 로그인 없이 결제</div>
+      <div class="pay-processing hidden" id="payProcessing"><div class="spinner"></div><div id="payStatus">결제창을 여는 중…</div></div>
+      <div class="pay-legal" id="payLegal">결제대행: 토스페이먼츠 · <b>[상호·사업자등록번호·통신판매업 신고번호·연락처 — 등록 후 삽입]</b> · 환불/개인정보/이용약관 [준비 중]<br>본 리포트는 통계·역학 기반의 <b>재미·참고용</b> 콘텐츠이며 과학적·의학적 근거가 없습니다.</div>
     </div>
   </div>
 
@@ -866,6 +873,9 @@ function analyzeTopic(P, key){
 }
 
 /* 심층 분석 카드 그리드 */
+function dprice(){ return payLocked()
+  ? '<div class="dprice"><span class="lockp">🔒 777원</span></div>'
+  : '<div class="dprice"><span class="strike">777원</span> <span class="freeb">지금 무료</span></div>'; }
 function deepMenuHTML(scope, rel){
   rel=rel||'love';
   const keys=Object.keys(DEEP_TOPICS).filter(k=>DEEP_TOPICS[k].scope===scope && !(DEEP_TOPICS[k].loveOnly && rel!=='love'));
@@ -876,7 +886,7 @@ function deepMenuHTML(scope, rel){
         <div class="dt">${t.title}</div>
         <div class="ds">${t.sub}</div>
       </div>
-      <div class="dprice"><span class="strike">777원</span> <span class="freeb">지금 무료</span></div>
+      ${dprice()}
       <div class="arrow">›</div>
     </button>`;
   }).join("");
@@ -884,14 +894,14 @@ function deepMenuHTML(scope, rel){
     ? `<button class="deepcard wide" onclick="openDeep('fusion')">
         <div class="di">🧬</div>
         <div class="dtx"><div class="dt">성격 × 사주 심층 리포트</div><div class="ds">MBTI와 사주를 엮은 4챕터 (겉과 속·둘이 만나면·부딪힐 때·오래가려면)</div></div>
-        <div class="dprice"><span class="strike">777원</span> <span class="freeb">지금 무료</span></div>
+        ${dprice()}
         <div class="arrow">›</div>
       </button>` : '';
   const fullCard = (scope==='couple' && window._ctx && window._ctx.A)
     ? `<button class="deepcard wide fullcard" onclick="openDeep('full')">
         <div class="di">📜</div>
         <div class="dtx"><div class="dt">우리 궁합 종합 리포트</div><div class="ds">두 사람의 사주·성격을 한 편으로 — 각자 성향·겉궁합·속궁합·관계 흐름·조언·총평</div></div>
-        <div class="dprice"><span class="strike">777원</span> <span class="freeb">지금 무료</span></div>
+        ${dprice()}
         <div class="arrow">›</div>
       </button>` : '';
   const hookH = scope==='couple' ? '그 사람 속마음, 콕 짚어드려요' : '네 속마음과 타이밍, 콕 짚어드려요';
@@ -899,7 +909,7 @@ function deepMenuHTML(scope, rel){
     ? '묻고 싶은 걸 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">그 사람 마음</b>과 <b style="color:var(--ink-dim)">언제</b>가 열리는지 짚어드려요.'
     : '궁금한 걸 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">언제</b>가 좋은지 짚어드려요.';
   return `<div class="sec">
-    <h3 class="deep-h">🔮 ${hookH} <span class="beta">지금 무료 체험</span></h3>
+    <h3 class="deep-h">🔮 ${hookH} <span class="beta">${payLocked()?'심층 리포트 777원':'지금 무료 체험'}</span></h3>
     <div class="para" style="color:var(--ink-faint);margin-bottom:4px">${hookP}</div>
     <div class="deepgrid">${fullCard}${cards}${fusionCard}</div>
   </div>`;
@@ -907,6 +917,7 @@ function deepMenuHTML(scope, rel){
 
 let _deepReq=0;  // 열 때마다 증가 → 늦게 도착한 AI 응답이 다른 주제 화면 덮어쓰는 것 방지
 function openDeep(key){
+  if(payLocked()){ openPayModal(key); return; }   // 결제 잠금(PAYWALL_ON) 시 결제 모달로
   if(key==='fusion'){ openFusionDeep(); return; }
   if(key==='full'){ openFullReport(); return; }
   const ctx=window._ctx||window._solo; if(!ctx) return;
@@ -1012,6 +1023,18 @@ async function saveDeepReport(){
    터널 URL이 바뀌면 이 한 줄만 고쳐 redeploy. localStorage 'yg_ai_endpoint'로 개별 오버라이드 가능. */
 const AI_DEFAULT_ENDPOINT="https://supplies-tba-brand-developed.trycloudflare.com/deep";
 const AI_TOKEN="yg8glp-2026-k9f3a7q";
+/* ── 결제(토스페이먼츠) 설정 ──
+   PAYWALL_ON: false면 지금처럼 심층 리포트 전부 무료(라이브 안전). 토스 키+테스트 결제+법무 끝난 뒤 true.
+   TOSS_CLIENT_KEY: 토스 대시보드의 '클라이언트 키'(공개키 — 프론트 노출 정상). 테스트=test_ck_..., 라이브=live_ck_...
+   결제 승인(secret)은 프론트에 없음 — 서버(/api/confirm)가 env TOSS_SECRET_KEY로만 처리. */
+const PAYWALL_ON=false;
+const TOSS_CLIENT_KEY="test_ck_REPLACE_WITH_YOUR_TEST_CLIENT_KEY";
+const PAY_AMOUNT=777;
+const PAY_PRODUCT_NAME="여덟 글자 · AI 심층 리포트";
+function payConfigured(){ return typeof TossPayments==='function' && /^(test|live)_ck_/.test(TOSS_CLIENT_KEY) && !/REPLACE/i.test(TOSS_CLIENT_KEY); }
+function hasPaid(){ try{ return !!JSON.parse(localStorage.getItem('yg_paid')||'{}')[ctxSig()]; }catch(e){ return false; } }
+function setPaid(sig){ try{ const o=JSON.parse(localStorage.getItem('yg_paid')||'{}'); o[sig||ctxSig()]=1; localStorage.setItem('yg_paid',JSON.stringify(o)); }catch(e){} }
+function payLocked(){ return PAYWALL_ON && !hasPaid() && !!(window._ctx && window._ctx.A); }   // 커플 심층 리포트만 잠금(솔로는 무료)
 function aiEndpoint(){ return localStorage.getItem('yg_ai_endpoint') || AI_DEFAULT_ENDPOINT || 'http://127.0.0.1:8788/deep'; }
 function aiOn(){ return localStorage.getItem('yg_ai_off')!=='1'; }
 function esc(s){ return String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
@@ -1720,26 +1743,70 @@ function animateScore(target){
   let n=0; const step=Math.max(1,Math.round(target/26));
   const t=setInterval(()=>{ n+=step; if(n>=target){n=target;clearInterval(t);} el.textContent=n; },26);
 }
-function openPayModal(){ track('pay_open',{}); const m=document.getElementById('payModal'); if(m){ resetPayModal(); const p=document.getElementById('payProcessing'); if(p){p.classList.add('hidden');p.innerHTML='';} m.classList.remove('hidden'); document.body.style.overflow='hidden'; } }
-function closePayModal(){ const m=document.getElementById('payModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; resetPayModal(); } }
-function resetPayModal(){ const p=document.getElementById('payProcessing'); if(p)p.classList.add('hidden'); const mm=document.getElementById('payMethods'); if(mm)mm.style.opacity=1; }
-function doPay(method){
-  track('pay_click',{method});
-  const proc=document.getElementById('payProcessing'), methods=document.getElementById('payMethods');
-  if(!proc)return; methods.style.opacity=.25; proc.classList.remove('hidden');
-  proc.innerHTML=`<div class="prewrap">
-    <div class="pre-h">곧 출시돼요!</div>
-    <div class="pre-sub"><b>${method}</b> 결제는 지금 준비 중이에요. 출시되면 <b>제일 먼저</b> 알려드릴게요.</div>
-    <div class="pre-form"><input id="notifyEmail" placeholder="이메일 (선택)" /><button class="btn sm" style="margin:0;width:auto;padding:12px 18px" onclick="notifyMe()">알림 받기</button></div>
-    <div class="hint" id="notifyDone" style="margin-top:8px"></div>
-  </div>`;
+let _payPendingKey=null;
+function openPayModal(key){ _payPendingKey=key||'full'; track('pay_open',{topic:_payPendingKey});
+  const m=document.getElementById('payModal'); if(!m)return; resetPayModal();
+  m.classList.remove('hidden'); document.body.style.overflow='hidden'; }
+function closePayModal(){ const m=document.getElementById('payModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; } resetPayModal(); }
+function resetPayModal(){ const p=document.getElementById('payProcessing'); if(p)p.classList.add('hidden');
+  const mm=document.getElementById('payMethods'); if(mm)mm.style.opacity=1;
+  const c=document.getElementById('payConsent'); if(c)c.checked=false;
+  const g=document.getElementById('payGo'); if(g){ g.disabled=true; g.textContent='동의 후 결제하기'; } }
+function onConsent(){ const c=document.getElementById('payConsent'), g=document.getElementById('payGo');
+  if(g){ const ok=!!(c&&c.checked); g.disabled=!ok; g.textContent=ok?'777원 결제하기':'동의 후 결제하기'; } }
+function payStatusMsg(t){ const proc=document.getElementById('payProcessing'), methods=document.getElementById('payMethods');
+  if(methods)methods.style.opacity=.25; if(proc){ proc.classList.remove('hidden'); const s=document.getElementById('payStatus'); if(s)s.textContent=t; } }
+// 결제 시작 → 토스 결제창(리다이렉트). 성공시 base?pay=success&paymentKey&orderId&amount 로 복귀 → boot()가 승인.
+async function doPay(){
+  const c=document.getElementById('payConsent'); if(!(c&&c.checked)){ onConsent(); return; }
+  track('pay_click',{topic:_payPendingKey});
+  if(!payConfigured()){ payStatusMsg('결제 준비 중이에요 (키 설정 전). 조금만요 🙏'); return; }
+  const sig=ctxSig();
+  const orderId='yg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+  try{ sessionStorage.setItem('yg_pay', JSON.stringify({ pair: window._pairRaw||null, key:_payPendingKey||'full', sig, orderId, amount:PAY_AMOUNT })); }catch(e){}
+  payStatusMsg('결제창을 여는 중…');
+  const base=location.origin+location.pathname;
+  try{
+    const tp=TossPayments(TOSS_CLIENT_KEY);
+    const ck=(TossPayments&&TossPayments.ANONYMOUS)?TossPayments.ANONYMOUS:('yg_'+Date.now());
+    const payment=tp.payment({ customerKey: ck });
+    await payment.requestPayment({
+      method:'CARD',
+      amount:{ currency:'KRW', value:PAY_AMOUNT },
+      orderId, orderName:PAY_PRODUCT_NAME,
+      successUrl: base+'?pay=success',
+      failUrl: base+'?pay=fail'
+    });
+  }catch(e){
+    const proc=document.getElementById('payProcessing'), methods=document.getElementById('payMethods');
+    if(proc)proc.classList.add('hidden'); if(methods)methods.style.opacity=1;
+    track('pay_cancel',{msg:String(e&&e.message||e).slice(0,60)});
+  }
 }
-function notifyMe(){
-  const em=(document.getElementById('notifyEmail')||{}).value||'';
-  track('pay_intent',{email: em?'1':'0'});
-  const d=document.getElementById('notifyDone'); if(d) d.textContent='신청됐어요! 출시되면 알려드릴게요 💌';
-  const inp=document.getElementById('notifyEmail'); if(inp) inp.disabled=true;
+// successUrl/failUrl 복귀 처리 (boot에서 호출). true면 처리됨.
+async function handlePayReturn(params){
+  const status=params.get('pay'); if(status!=='success'&&status!=='fail') return false;
+  let saved={}; try{ saved=JSON.parse(sessionStorage.getItem('yg_pay')||'{}'); }catch(e){}
+  cleanPayUrl();
+  if(saved.pair&&saved.pair.a&&saved.pair.b){ renderResult(saved.pair.a, saved.pair.b); } // 결과 화면 복원(_ctx 세팅)
+  else { show("viewA"); }   // 복원 정보 없으면 첫 화면
+  if(status==='fail'){ track('pay_fail_return',{}); toast('결제가 취소되었어요. 다시 시도할 수 있어요.'); try{sessionStorage.removeItem('yg_pay');}catch(e){} return true; }
+  const paymentKey=params.get('paymentKey'), orderId=params.get('orderId'), amount=params.get('amount');
+  if(!paymentKey||!orderId||!amount){ toast('결제 정보가 올바르지 않아요.'); return true; }
+  toast('결제 확인 중…');
+  try{
+    const r=await fetch('/api/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentKey,orderId,amount:Number(amount)})});
+    const j=await r.json();
+    if(j&&j.ok){ setPaid(saved.sig); track('pay_done',{}); toast('결제 완료! 리포트를 열어드릴게요 ✨'); const key=saved.key||'full'; setTimeout(()=>openDeep(key), 500); }
+    else{ track('pay_confirm_fail',{code:(j&&j.code)||''}); toast('결제 승인에 실패했어요. 결제되었다면 자동 취소돼요.'); }
+  }catch(e){ toast('결제 확인 중 오류가 났어요. 잠시 후 다시 시도해 주세요.'); }
+  try{ sessionStorage.removeItem('yg_pay'); }catch(e){}
+  return true;
 }
+function cleanPayUrl(){ try{ history.replaceState(null,'',location.origin+location.pathname); }catch(e){} }
+function toast(msg){ let t=document.getElementById('ygToast');
+  if(!t){ t=document.createElement('div'); t.id='ygToast'; t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(20,16,40,.96);color:#fff;border:1px solid rgba(255,255,255,.14);padding:12px 18px;border-radius:999px;font-size:13.5px;z-index:99999;box-shadow:0 12px 30px -8px rgba(0,0,0,.6);max-width:88vw;text-align:center'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.transition=''; t.style.opacity='1'; clearTimeout(window._toastT); window._toastT=setTimeout(()=>{ t.style.transition='opacity .5s'; t.style.opacity='0'; },3400); }
 function unlockFusion(){
   const fus=window._ctx&&window._ctx.fus; if(!fus)return;
   const box=document.getElementById('premLocked'); if(!box)return;
@@ -1791,6 +1858,8 @@ async function genAI(){
 /* 진입 라우팅 */
 function boot(){
   document.getElementById("formA").innerHTML=personForm("A", "", true);
+  const q=new URLSearchParams(location.search);
+  if(q.get('pay')){ handlePayReturn(q); return; }   // 토스 결제창 복귀(?pay=success/fail) → 결과 복원+승인
   const h=location.hash;
   if(h.startsWith("#r=")){                          // 전체 결과 링크 — 바로 결과 표시(입력 불필요)
     const pair=dec(h.slice(3));
