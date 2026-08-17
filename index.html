@@ -873,9 +873,9 @@ function analyzeTopic(P, key){
 }
 
 /* 심층 분석 카드 그리드 */
-function dprice(){ return payLocked()
-  ? '<div class="dprice"><span class="lockp">🔒 777원</span></div>'
-  : '<div class="dprice"><span class="strike">777원</span> <span class="freeb">지금 무료</span></div>'; }
+function dprice(key){ const amt=amountFor(key); return payLockedFor(key)
+  ? '<div class="dprice"><span class="lockp">🔒 '+amt+'원</span></div>'
+  : '<div class="dprice"><span class="strike">'+amt+'원</span> <span class="freeb">지금 무료</span></div>'; }
 function deepMenuHTML(scope, rel){
   rel=rel||'love';
   const keys=Object.keys(DEEP_TOPICS).filter(k=>DEEP_TOPICS[k].scope===scope && !(DEEP_TOPICS[k].loveOnly && rel!=='love'));
@@ -886,7 +886,7 @@ function deepMenuHTML(scope, rel){
         <div class="dt">${t.title}</div>
         <div class="ds">${t.sub}</div>
       </div>
-      ${dprice()}
+      ${dprice(k)}
       <div class="arrow">›</div>
     </button>`;
   }).join("");
@@ -894,14 +894,14 @@ function deepMenuHTML(scope, rel){
     ? `<button class="deepcard wide" onclick="openDeep('fusion')">
         <div class="di">🧬</div>
         <div class="dtx"><div class="dt">성격 × 사주 심층 리포트</div><div class="ds">MBTI와 사주를 엮은 4챕터 (겉과 속·둘이 만나면·부딪힐 때·오래가려면)</div></div>
-        ${dprice()}
+        ${dprice('fusion')}
         <div class="arrow">›</div>
       </button>` : '';
   const fullCard = (scope==='couple' && window._ctx && window._ctx.A)
     ? `<button class="deepcard wide fullcard" onclick="openDeep('full')">
         <div class="di">📜</div>
         <div class="dtx"><div class="dt">우리 궁합 종합 리포트</div><div class="ds">두 사람의 사주·성격을 한 편으로 — 각자 성향·겉궁합·속궁합·관계 흐름·조언·총평</div></div>
-        ${dprice()}
+        ${dprice('full')}
         <div class="arrow">›</div>
       </button>` : '';
   const hookH = scope==='couple' ? '그 사람 속마음, 콕 짚어드려요' : '네 속마음과 타이밍, 콕 짚어드려요';
@@ -909,7 +909,7 @@ function deepMenuHTML(scope, rel){
     ? '묻고 싶은 걸 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">그 사람 마음</b>과 <b style="color:var(--ink-dim)">언제</b>가 열리는지 짚어드려요.'
     : '궁금한 걸 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">언제</b>가 좋은지 짚어드려요.';
   return `<div class="sec">
-    <h3 class="deep-h">🔮 ${hookH} <span class="beta">${payLocked()?'심층 리포트 777원':'지금 무료 체험'}</span></h3>
+    <h3 class="deep-h">🔮 ${hookH} <span class="beta">${payWallActive()?'종합 777 · 개별 333원':'지금 무료 체험'}</span></h3>
     <div class="para" style="color:var(--ink-faint);margin-bottom:4px">${hookP}</div>
     <div class="deepgrid">${fullCard}${cards}${fusionCard}</div>
   </div>`;
@@ -917,7 +917,7 @@ function deepMenuHTML(scope, rel){
 
 let _deepReq=0;  // 열 때마다 증가 → 늦게 도착한 AI 응답이 다른 주제 화면 덮어쓰는 것 방지
 function openDeep(key){
-  if(payLocked()){ openPayModal(key); return; }   // 결제 잠금(PAYWALL_ON) 시 결제 모달로
+  if(payLockedFor(key)){ openPayModal(key); return; }   // 결제 잠금(PAYWALL_ON) 시 결제 모달로
   if(key==='fusion'){ openFusionDeep(); return; }
   if(key==='full'){ openFullReport(); return; }
   const ctx=window._ctx||window._solo; if(!ctx) return;
@@ -1029,12 +1029,13 @@ const AI_TOKEN="yg8glp-2026-k9f3a7q";
    결제 승인(secret)은 프론트에 없음 — 서버(/api/confirm)가 env TOSS_SECRET_KEY로만 처리. */
 const PAYWALL_ON=false;
 const TOSS_CLIENT_KEY="test_ck_d46qopOB89JOjY5lpOPE3ZmM75y0";  // 토스 테스트(샌드박스) 클라이언트 키. 전자결제 신청 후 전용키로 교체
-const PAY_AMOUNT=777;
-const PAY_PRODUCT_NAME="여덟 글자 · AI 심층 리포트";
+function amountFor(key){ return key==='full'?777:333; }   // 종합 리포트 777 / 개별·성격x사주 333
 function payConfigured(){ return typeof TossPayments==='function' && /^(test|live)_ck_/.test(TOSS_CLIENT_KEY) && !/REPLACE/i.test(TOSS_CLIENT_KEY); }
-function hasPaid(){ try{ return !!JSON.parse(localStorage.getItem('yg_paid')||'{}')[ctxSig()]; }catch(e){ return false; } }
-function setPaid(sig){ try{ const o=JSON.parse(localStorage.getItem('yg_paid')||'{}'); o[sig||ctxSig()]=1; localStorage.setItem('yg_paid',JSON.stringify(o)); }catch(e){} }
-function payLocked(){ return PAYWALL_ON && !hasPaid() && !!(window._ctx && window._ctx.A); }   // 커플 심층 리포트만 잠금(솔로는 무료)
+function payWallActive(){ return PAYWALL_ON && !!(window._ctx && window._ctx.A); }   // 커플 결과에서만 결제 벽(솔로 무료)
+function paidMap(){ try{ return JSON.parse(localStorage.getItem('yg_paid')||'{}')[ctxSig()]||{}; }catch(e){ return {}; } }
+function hasPaidFor(key){ const m=paidMap(); return !!(m.all || m[key]); }   // 종합(all) 결제 시 전부 열림, 개별은 해당 리포트만
+function markPaid(key){ try{ const all=JSON.parse(localStorage.getItem('yg_paid')||'{}'); const sig=ctxSig(); const m=all[sig]||{}; if(key==='full') m.all=1; else m[key]=1; all[sig]=m; localStorage.setItem('yg_paid',JSON.stringify(all)); }catch(e){} }
+function payLockedFor(key){ return payWallActive() && !hasPaidFor(key); }
 function aiEndpoint(){ return localStorage.getItem('yg_ai_endpoint') || AI_DEFAULT_ENDPOINT || 'http://127.0.0.1:8788/deep'; }
 function aiOn(){ return localStorage.getItem('yg_ai_off')!=='1'; }
 function esc(s){ return String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
@@ -1746,6 +1747,12 @@ function animateScore(target){
 let _payPendingKey=null;
 function openPayModal(key){ _payPendingKey=key||'full'; track('pay_open',{topic:_payPendingKey});
   const m=document.getElementById('payModal'); if(!m)return; resetPayModal();
+  const amt=amountFor(_payPendingKey);
+  const amtEl=m.querySelector('.pay-amount'); if(amtEl) amtEl.innerHTML=amt+'<span>원</span>';
+  const titleEl=m.querySelector('.pay-title'), subEl=m.querySelector('.pay-sub');
+  if(_payPendingKey==='full'){ if(titleEl)titleEl.textContent='우리 궁합 종합 리포트'; if(subEl)subEl.textContent='두 사람 사주·성격 전체 + 모든 개별 리포트까지 한 번에'; }
+  else if(_payPendingKey==='fusion'){ if(titleEl)titleEl.textContent='성격 × 사주 심층 리포트'; if(subEl)subEl.textContent='MBTI와 사주를 엮은 4챕터 전체'; }
+  else { const t=(typeof DEEP_TOPICS!=='undefined')?DEEP_TOPICS[_payPendingKey]:null; if(titleEl)titleEl.textContent=(t&&t.title)||'AI 심층 리포트'; if(subEl)subEl.textContent=(t&&t.sub)||'이 주제의 심층 리포트'; }
   m.classList.remove('hidden'); document.body.style.overflow='hidden'; }
 function closePayModal(){ const m=document.getElementById('payModal'); if(m){ m.classList.add('hidden'); document.body.style.overflow=''; } resetPayModal(); }
 function resetPayModal(){ const p=document.getElementById('payProcessing'); if(p)p.classList.add('hidden');
@@ -1753,7 +1760,7 @@ function resetPayModal(){ const p=document.getElementById('payProcessing'); if(p
   const c=document.getElementById('payConsent'); if(c)c.checked=false;
   const g=document.getElementById('payGo'); if(g){ g.disabled=true; g.textContent='동의 후 결제하기'; } }
 function onConsent(){ const c=document.getElementById('payConsent'), g=document.getElementById('payGo');
-  if(g){ const ok=!!(c&&c.checked); g.disabled=!ok; g.textContent=ok?'777원 결제하기':'동의 후 결제하기'; } }
+  if(g){ const ok=!!(c&&c.checked); g.disabled=!ok; g.textContent=ok?(amountFor(_payPendingKey)+'원 결제하기'):'동의 후 결제하기'; } }
 function payStatusMsg(t){ const proc=document.getElementById('payProcessing'), methods=document.getElementById('payMethods');
   if(methods)methods.style.opacity=.25; if(proc){ proc.classList.remove('hidden'); const s=document.getElementById('payStatus'); if(s)s.textContent=t; } }
 // 결제 시작 → 토스 결제창(리다이렉트). 성공시 base?pay=success&paymentKey&orderId&amount 로 복귀 → boot()가 승인.
@@ -1762,8 +1769,9 @@ async function doPay(){
   track('pay_click',{topic:_payPendingKey});
   if(!payConfigured()){ payStatusMsg('결제 준비 중이에요 (키 설정 전). 조금만요 🙏'); return; }
   const sig=ctxSig();
+  const key=_payPendingKey||'full'; const amt=amountFor(key);
   const orderId='yg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
-  try{ sessionStorage.setItem('yg_pay', JSON.stringify({ pair: window._pairRaw||null, key:_payPendingKey||'full', sig, orderId, amount:PAY_AMOUNT })); }catch(e){}
+  try{ sessionStorage.setItem('yg_pay', JSON.stringify({ pair: window._pairRaw||null, key, sig, orderId, amount:amt })); }catch(e){}
   payStatusMsg('결제창을 여는 중…');
   const base=location.origin+location.pathname;
   try{
@@ -1772,8 +1780,8 @@ async function doPay(){
     const payment=tp.payment({ customerKey: ck });
     await payment.requestPayment({
       method:'CARD',
-      amount:{ currency:'KRW', value:PAY_AMOUNT },
-      orderId, orderName:PAY_PRODUCT_NAME,
+      amount:{ currency:'KRW', value:amt },
+      orderId, orderName:PAY_PRODUCT_NAME+(key==='full'?' (종합)':' (개별)'),
       successUrl: base+'?pay=success',
       failUrl: base+'?pay=fail'
     });
@@ -1797,7 +1805,7 @@ async function handlePayReturn(params){
   try{
     const r=await fetch('/api/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentKey,orderId,amount:Number(amount)})});
     const j=await r.json();
-    if(j&&j.ok){ setPaid(saved.sig); track('pay_done',{}); toast('결제 완료! 리포트를 열어드릴게요 ✨'); const key=saved.key||'full'; setTimeout(()=>openDeep(key), 500); }
+    if(j&&j.ok){ markPaid(saved.key||'full'); track('pay_done',{amount:Number(amount)}); toast('결제 완료! 리포트를 열어드릴게요 ✨'); const key=saved.key||'full'; setTimeout(()=>openDeep(key), 500); }
     else{ track('pay_confirm_fail',{code:(j&&j.code)||''}); toast('결제 승인에 실패했어요. 결제되었다면 자동 취소돼요.'); }
   }catch(e){ toast('결제 확인 중 오류가 났어요. 잠시 후 다시 시도해 주세요.'); }
   try{ sessionStorage.removeItem('yg_pay'); }catch(e){}

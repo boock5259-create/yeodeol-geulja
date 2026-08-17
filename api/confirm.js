@@ -8,7 +8,7 @@
 
 // 서버가 인정하는 상품 가격(원). 클라이언트가 보낸 금액을 신뢰하지 않고 이 목록으로 검증한다.
 // (금액 위변조 방지 — 결제 보안의 핵심)
-const ALLOWED_AMOUNTS = new Set([777]);
+const ALLOWED_AMOUNTS = new Set([333, 777]);   // 개별 심층 333 / 종합 리포트 777
 
 const TOSS_CONFIRM_URL = 'https://api.tosspayments.com/v1/payments/confirm';
 
