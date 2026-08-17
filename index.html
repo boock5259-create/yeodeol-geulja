@@ -1028,7 +1028,7 @@ const AI_TOKEN="yg8glp-2026-k9f3a7q";
    TOSS_CLIENT_KEY: 토스 대시보드의 '클라이언트 키'(공개키 — 프론트 노출 정상). 테스트=test_ck_..., 라이브=live_ck_...
    결제 승인(secret)은 프론트에 없음 — 서버(/api/confirm)가 env TOSS_SECRET_KEY로만 처리. */
 const PAYWALL_ON=false;
-const TOSS_CLIENT_KEY="test_ck_REPLACE_WITH_YOUR_TEST_CLIENT_KEY";
+const TOSS_CLIENT_KEY="test_ck_d46qopOB89JOjY5lpOPE3ZmM75y0";  // 토스 테스트(샌드박스) 클라이언트 키. 전자결제 신청 후 전용키로 교체
 const PAY_AMOUNT=777;
 const PAY_PRODUCT_NAME="여덟 글자 · AI 심층 리포트";
 function payConfigured(){ return typeof TossPayments==='function' && /^(test|live)_ck_/.test(TOSS_CLIENT_KEY) && !/REPLACE/i.test(TOSS_CLIENT_KEY); }
