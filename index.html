@@ -226,6 +226,10 @@ gtag('js', new Date());
   .reviewpills{display:flex;flex-wrap:wrap;gap:8px}
   .rpill{padding:10px 16px;border-radius:999px;border:1px solid var(--card-line);background:rgba(255,255,255,.05);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
   .rpill:hover{border-color:var(--gold);background:rgba(245,196,81,.1);transform:translateY(-1px)}
+  .atabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
+  .atab{padding:9px 15px;border-radius:999px;border:1px solid var(--card-line);background:rgba(255,255,255,.05);color:var(--ink-dim);font-size:13.5px;font-weight:700;cursor:pointer;transition:.15s}
+  .atab.on{background:linear-gradient(135deg,#ffe19f,var(--gold));color:#241704;border-color:transparent}
+  .atab:hover:not(.on){border-color:var(--gold);color:var(--ink)}
   .pay-processing{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink)}
   .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -926,6 +930,13 @@ function deepMenuHTML(scope, rel){
         ${dprice('full')}
         <div class="arrow">›</div>
       </button>` : '';
+  const aspectsCard = (scope==='couple' && window._ctx && window._ctx.A)
+    ? `<button class="deepcard wide" onclick="openDeep('aspects')">
+        <div class="di">💞</div>
+        <div class="dtx"><div class="dt">관점별 심화 — 애정·금전·건강·가정</div><div class="ds">한 리포트에서 관점 탭을 넘겨가며 우리 사이를 깊이 봐요</div></div>
+        ${dprice('aspects')}
+        <div class="arrow">›</div>
+      </button>` : '';
   const hookH = scope==='couple' ? '그 사람 속마음, 콕 짚어드려요' : '네 속마음과 타이밍, 콕 짚어드려요';
   const hookP = scope==='couple'
     ? '묻고 싶은 걸 골라보세요 — 사주 세운(細運)으로 <b style="color:var(--ink-dim)">그 사람 마음</b>과 <b style="color:var(--ink-dim)">언제</b>가 열리는지 짚어드려요.'
@@ -933,7 +944,7 @@ function deepMenuHTML(scope, rel){
   return `<div class="sec">
     <h3 class="deep-h">🔮 ${hookH} <span class="beta">${payWallActive()?'종합 777 · 개별 333원':'지금 무료 체험'}</span></h3>
     <div class="para" style="color:var(--ink-faint);margin-bottom:4px">${hookP}</div>
-    <div class="deepgrid">${fullCard}${cards}${fusionCard}</div>
+    <div class="deepgrid">${fullCard}${aspectsCard}${cards}${fusionCard}</div>
   </div>`;
 }
 
@@ -942,6 +953,7 @@ function openDeep(key){
   if(payLockedFor(key)){ openPayModal(key); return; }   // 결제 잠금(PAYWALL_ON) 시 결제 모달로
   if(key==='fusion'){ openFusionDeep(); return; }
   if(key==='full'){ openFullReport(); return; }
+  if(key==='aspects'){ openAspects(); return; }
   const ctx=window._ctx||window._solo; if(!ctx) return;
   const P=ctx.A||ctx.S; if(!P) return;
   track('deep_open',{topic:key});
@@ -1192,6 +1204,41 @@ function renderAISlot(p){ const slot=document.getElementById('deepAnalysis'); if
   body=body.replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
   slot.innerHTML=`<div class="ai-badge">✨ AI 심층 리포트</div>${p.title?`<div class="ai-title">${esc(p.title)}</div>`:''}<div class="ai-body">${body}</div>`;
 }
+
+/* ── 관점별 심화 탭(애정/금전/건강/가정) — 한 리포트 안에서 관점만 바꿔 탐색(패널 권고: 카드당 결제 대신 탭) ── */
+const ASPECTS=[
+  {key:'love', label:'애정운', icon:'💞', focus:'두 사람의 애정·감정 흐름, 사랑을 표현하고 받아들이는 방식의 차이, 갈등이 생기는 지점과 풀리는 방식'},
+  {key:'money',label:'금전운', icon:'💰', focus:'재물·소비와 저축 성향의 궁합, 함께 돈을 관리할 때의 조화 또는 부딪힘, 재정에서 서로를 보완하는 법'},
+  {key:'health',label:'건강운', icon:'🌿', focus:'각자 타고난 오행의 강약으로 본 건강·컨디션의 주의점, 서로 챙겨주면 좋을 부분'},
+  {key:'home', label:'가정운', icon:'🏠', focus:'함께하는 생활·가정의 안정감, 같이 살거나 오래 함께할 때의 리듬, 집안 분위기와 역할 분담'}
+];
+let _aspectCur='love';
+function buildAspectPrompt(key){ const c=buildFullContext(); if(!c) return null; const A=ASPECTS.find(x=>x.key===key)||ASPECTS[0];
+  return `${DEEP_AI_RULES}\n\n## 주제: ${A.icon} 두 사람의 ${A.label}\n지시: 아래 두 사람의 여덟글자·오행·MBTI를 근거로 '${A.label}'에만 집중해 써라 — ${A.focus}. 두 사람의 물상·오행을 실제로 엮어 이 두 사람에게서만 나올 내용으로. 관계유형 톤 반영(배우자·부부면 이미 결혼한 관계 전제). 4~5문장, 밝고 다정한 존댓말, 이름 뒤 '님', 한국어(한글)로만. 마지막 문장은 구체적 실천 한 줄로 '👉'로 시작.\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"내용"}`; }
+function aspectCacheKey(key){ return 'ai:aspect_'+key+':'+ctxSig(); }
+function aspectTemplate(key){ const T={
+  love:'서로의 감정 표현 방식이 달라, 한쪽이 직진일 때 다른 쪽은 뜸을 들여요. 그 리듬만 이해하면 애정은 더 깊어져요.',
+  money:'돈을 대하는 온도가 서로 달라요 — 한 명이 모으려 하면 한 명은 쓰려 해요. 역할을 나누면 오히려 균형이 맞아요.',
+  health:'기운의 강약이 서로 반대라, 한쪽이 지칠 때 다른 쪽이 채워줄 수 있어요. 무리한 날엔 서로 쉬라고 말해주세요.',
+  home:'함께 있는 공간의 분위기를 만드는 힘이 있어요. 각자의 리듬을 존중하면 집이 가장 편한 곳이 돼요.' };
+  return (T[key]||'')+'<br><br>👉 오늘 이 관점으로 한 가지만 서로에게 말해보세요.'; }
+function renderAspectSlot(p, slot){ if(!slot||!p) return; let body=esc(p.body).replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+  slot.innerHTML=`<div class="ai-badge">✨ AI 심층</div>${p.title?`<div class="ai-title">${esc(p.title)}</div>`:''}<div class="ai-body">${body}</div>`; }
+function loadAspect(key){ const slot=document.getElementById('aspectBody'); if(!slot) return; const useAI=aiOn();
+  if(!useAI){ slot.innerHTML=`<div class="ai-body">${aspectTemplate(key)}</div>`; return; }
+  slot.innerHTML=aiLoaderHTML(); const _rq=++_deepReq;
+  aiDeepFetch('aspect_'+key, buildAspectPrompt(key), aspectCacheKey(key)).then(p=>{ if(_rq!==_deepReq) return; const s=document.getElementById('aspectBody'); if(!s) return;
+    if(p&&p.body){ renderAspectSlot(p, s); } else { s.innerHTML=`<div class="ai-body">${aspectTemplate(key)}</div>`; } }); }
+function selectAspect(key){ if(!ASPECTS.find(x=>x.key===key)) return; _aspectCur=key; track('aspect_tab',{key});
+  [...document.querySelectorAll('.atab')].forEach(b=>b.classList.toggle('on', b.dataset.a===key)); loadAspect(key); }
+function openAspects(){ const ctx=window._ctx; if(!ctx||!ctx.A) return; track('deep_open',{topic:'aspects'}); _aspectCur='love';
+  const tabs=ASPECTS.map(a=>`<button class="atab${a.key===_aspectCur?' on':''}" data-a="${a.key}" onclick="selectAspect('${a.key}')">${a.icon} ${a.label}</button>`).join('');
+  document.getElementById('deepBody').innerHTML=`
+    <div class="dm-top"><span class="dm-ic">💞</span><span class="dm-title">관점별 심화 — 우리 사이</span><span class="dm-badge">${payLockedFor('aspects')?'개별 '+amountFor('aspects')+'원':'무료 체험'}</span></div>
+    <div class="atabs">${tabs}</div>
+    <div id="aspectBody"></div>
+    <div class="dm-foot">💞 애정·금전·건강·가정 — 관점을 바꿔가며 우리 사이를 봐요</div>`;
+  showDeepModal(); loadAspect(_aspectCur); }
 
 /* ============================================================
    궁합 로직 (오행 상생상극 + 지지 합/충 + 오행 보완)
