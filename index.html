@@ -223,6 +223,9 @@ gtag('js', new Date());
   .footlinks{margin-top:9px;font-size:12px;display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
   .footbiz{margin-top:8px;font-size:10.5px;color:var(--ink-faint);line-height:1.6;max-width:520px;margin:8px auto 0}
   .pbiz{color:var(--ink-faint)}
+  .reviewpills{display:flex;flex-wrap:wrap;gap:8px}
+  .rpill{padding:10px 16px;border-radius:999px;border:1px solid var(--card-line);background:rgba(255,255,255,.05);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
+  .rpill:hover{border-color:var(--gold);background:rgba(245,196,81,.1);transform:translateY(-1px)}
   .pay-processing{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink)}
   .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -1101,7 +1104,7 @@ function buildFusionContext(){
 }
 function buildFusionPrompt(){
   const c=buildFusionContext(); if(!c) return null;
-  return `${DEEP_AI_RULES}\n\n## 주제: 🧬 성격 × 사주 심층 리포트\n지시: 두 사람의 MBTI(겉)와 사주 오행(속)을 엮어 4개 챕터를 써라 — "겉과 속"(각자 MBTI와 사주가 일치/반전하는지), "둘이 만나면"(에너지·소통 화학반응), "부딪힐 때"(갈등 패턴과 푸는 법), "오래가려면"(구체적 관계 팁). 각 챕터는 굵은 제목 + **3~4문장**으로 구체적이고 깊게(두 사람 물상·오행·MBTI를 실제로 엮어서). 관계유형(연인/친구/가족/직장)에 맞는 톤으로. 전체 700~1000자.\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"겉과 속 — ...\\n\\n둘이 만나면 — ...\\n\\n부딪힐 때 — ...\\n\\n오래가려면 — ..."}`;
+  return `${DEEP_AI_RULES}\n\n## 주제: 🧬 성격 × 사주 심층 리포트\n지시: 두 사람의 MBTI(겉)와 사주 오행(속)을 엮어 4개 챕터를 써라 — "겉과 속"(각자 MBTI와 사주가 일치/반전하는지), "둘이 만나면"(에너지·소통 화학반응), "부딪힐 때"(갈등 패턴과 푸는 법), "오래가려면"(구체적 관계 팁). 각 챕터는 굵은 제목 + **3~4문장**으로 구체적이고 깊게(두 사람 물상·오행·MBTI를 실제로 엮어서). 관계유형(연인/배우자·부부/친구/가족/직장)에 맞는 톤으로 — **배우자·부부면 이미 결혼해 함께 사는 관계를 전제로 새 연애의 설렘이 아니라 권태기 극복·서로 이해·가정의 조화 관점으로 써라.** 전체 700~1000자.\n\n## [확정 사주 데이터]\n\`\`\`json\n${JSON.stringify(c,null,1)}\n\`\`\`\n\n## 출력\n아래 JSON만 반환(다른 말·코드블록 금지): {"title":"짧은 제목","body":"겉과 속 — ...\\n\\n둘이 만나면 — ...\\n\\n부딪힐 때 — ...\\n\\n오래가려면 — ..."}`;
 }
 function fusionCacheKey(){ return 'ai:fusion:'+ctxSig(); }
 // 종합 심층 리포트(플래그십, 7섹션·길게) — 커플 전용
@@ -1115,9 +1118,9 @@ function buildFullContext(){
 }
 function buildFullPrompt(){
   const c=buildFullContext(); if(!c) return null; const rel=c.관계유형; const nA=c.A.이름, nB=c.B.이름;
-  const flow = rel==='연인·썸'?'애정 흐름과 시기':'관계 흐름과 시기';
+  const flow = (rel==='연인·썸')?'애정 흐름과 시기':(rel==='배우자·부부')?'부부의 흐름과 시기':'관계 흐름과 시기';
   return `너는 궁합 웹앱 "여덟 글자"의 AI 심층 사주 분석가다. [확정 사주 데이터]는 앱 엔진이 계산한 사실이니 그 위에서만, 지어내지 말고 쓴다.
-이번엔 **종합 심층 궁합 리포트**다. 아래 7개 섹션을 순서대로, 각 섹션 제목을 반드시 【제목】 형식으로 쓰고 그 아래 3~5문장으로 깊고 구체적으로 써라. 두 사람의 물상·오행·여덟글자·MBTI·세운을 실제로 엮어 이 두 사람에게서만 나올 내용으로. 관계유형(${rel})에 맞는 톤(연애면 애정, 친구/가족/직장이면 그 관계로). 재미로 보는 톤(단정 예언 금지), 밝고 다정한 존댓말, 이름 뒤 '님' 붙여쓰기, 한국어(한글)로만(MBTI 코드만 예외).
+이번엔 **종합 심층 궁합 리포트**다. 아래 7개 섹션을 순서대로, 각 섹션 제목을 반드시 【제목】 형식으로 쓰고 그 아래 3~5문장으로 깊고 구체적으로 써라. 두 사람의 물상·오행·여덟글자·MBTI·세운을 실제로 엮어 이 두 사람에게서만 나올 내용으로. 관계유형(${rel})에 맞는 톤(연애면 설레는 애정, **배우자·부부면 이미 결혼해 함께 사는 관계 전제 — 새 연애의 설렘이 아니라 권태기 극복·서로 이해·가정운/재정운·오래 함께 갈 지혜 관점**, 친구/가족/직장이면 그 관계로). 재미로 보는 톤(단정 예언 금지), 밝고 다정한 존댓말, 이름 뒤 '님' 붙여쓰기, 한국어(한글)로만(MBTI 코드만 예외).
 섹션 순서: 【${nA}님은 어떤 사람】 【${nB}님은 어떤 사람】 【겉궁합 — 성격의 조화】 【속궁합 — 타고난 기운의 조화】 【${flow}】 【부딪힐 때와 조언】 【총평】
 전체 1500~2200자.
 
@@ -1202,31 +1205,37 @@ const OH_TRAIT={목:"곧게 뻗어 나가는", 화:"밝고 뜨거운", 토:"듬�
 /* ── 관계 유형(rel)별 톤 — 연애 기본, 친구/가족/직장은 어색함 제거 ── */
 const REL_META={
   love:  {label:'연인·썸', badge:same=>same?'동성 궁합':'이성 궁합'},
+  spouse:{label:'배우자·부부', badge:()=>'부부 궁합'},
   friend:{label:'친구',    badge:()=>'친구 궁합'},
   family:{label:'가족',    badge:()=>'가족 궁합'},
   work:  {label:'직장',    badge:()=>'직장 궁합'}
 };
+const REL_EMOJI={love:'💗',spouse:'💍',friend:'🤝',family:'👨‍👩‍👧',work:'💼'};
+const REL_ORDER=['love','spouse','friend','family','work'];
 // 정반대(상극) 케미 라인
-const KE_LINE={ love:'눈을 못 떼는 밀당의 사이', friend:'티격태격하면서도 묘하게 붙어 다니는 사이',
+const KE_LINE={ love:'눈을 못 떼는 밀당의 사이', spouse:'부딪혀도 결국 서로에게 돌아오는 사이', friend:'티격태격하면서도 묘하게 붙어 다니는 사이',
   family:'부딪히면서도 결국 서로를 챙기는 사이', work:'스타일은 정반대라도 손발은 의외로 맞는 콤비' };
 // 점수 밴드(0=최고~4)별 verdict
 const VERDICTS={
   love:  ["천생연분","찰떡 케미","은근 잘 맞음","설레는 밀당","서로 배우는 사이"],
+  spouse:["천생연분 부부","찰떡 부부","은근 잘 맞는 부부","애증의 부부","맞춰가는 부부"],
   friend:["둘도 없는 단짝","찰떡 케미","은근 잘 맞음","티격태격 케미","알아가는 사이"],
   family:["천생 가족","척하면 척","은근 잘 맞음","애증의 케미","맞춰가는 사이"],
   work:  ["환상의 팀","합 좋은 콤비","무난한 짝","스타일 상극 콤비","맞춰가는 콤비"] };
 const TAGS={
   love:[["이런 인연, 흔치 않아요","서로를 위해 태어난 듯한 사이","만날 사람을 만난 거예요"],["곁에 있으면 편안한 사이","말 안 해도 척하면 척인 사이","오래 봐도 물리지 않는 사이"],["알아갈수록 더 좋아지는 사이","티 안 나게 잘 맞는 사이","시간이 편들어주는 사이"],["다른 듯 끌리는, 심심할 틈 없는 사이","티격태격하다 정드는 사이","밀고 당기는 재미가 있는 사이"],["노력한 만큼 깊어지는 인연","서로 다른 만큼 배울 게 많은 사이","맞춰가는 재미가 있는 사이"]],
+  spouse:[["전생에 부부였던 듯한 사이","서로의 반쪽으로 태어난 부부","평생 함께할 천생연분"],["말 안 해도 통하는 편안한 부부","곁에 있는 게 당연해진 사이","오래 살아도 든든한 부부"],["살아갈수록 정드는 부부","은근히 잘 맞춰 사는 사이","세월이 이어주는 부부"],["애증이 오가도 못 떠나는 부부","투닥대도 결국 한 편인 사이","가까워서 더 부딪히는 부부"],["맞춰가며 깊어지는 부부","다른 만큼 서로를 채우는 사이","함께 익어가는 부부"]],
   friend:[["평생 갈 단짝","말 안 해도 통하는 베프","서로의 안전지대"],["편하고 오래가는 친구","같이 있으면 편한 사이","자주 봐도 안 지겨운 사이"],["알수록 잘 맞는 친구","은근히 손발 맞는 사이","시간이 쌓아주는 우정"],["투닥대도 결국 붙어있는 사이","티격태격하다 정든 사이","밀고 당기는 재미가 있는 우정"],["다른 만큼 배우는 친구","맞춰가며 깊어지는 사이","서로 넓혀주는 사이"]],
   family:[["천생연분 같은 가족","말 안 해도 아는 사이","서로의 뿌리"],["편안한 가족 케미","척하면 척인 사이","오래 봐도 든든한 사이"],["알수록 닮은 가족","은근히 잘 맞는 사이","시간이 이어주는 정"],["애증이 오가는 케미","투닥대도 결국 챙기는 사이","가까워서 더 부딪히는 사이"],["다른 만큼 배우는 가족","맞춰가는 사이","서로를 이해해가는 사이"]],
   work:[["환상의 드림팀","눈빛만 봐도 아는 콤비","서로를 키워주는 파트너"],["합이 잘 맞는 콤비","척하면 척인 팀워크","오래 일해도 편한 사이"],["알수록 잘 맞는 파트너","은근히 손발 맞는 콤비","시간이 다져주는 팀워크"],["스타일 정반대 콤비","티격태격해도 결과는 내는 팀","밀당하듯 균형 맞추는 콤비"],["다른 만큼 시너지 나는 팀","맞춰가는 콤비","서로 배우는 파트너"]] };
 /* ── 커플 유형명 (물상 이모지 + 관계 다이내믹 + 관계유형 톤) — 공유용 캐치 라벨 ── */
 const OH_EMO2={목:'🌳',화:'🔥',토:'⛰️',금:'💎',수:'🌊'};
-const CT_NOUN={love:'커플',friend:'단짝',family:'가족',work:'콤비'};
+const CT_NOUN={love:'커플',spouse:'부부',friend:'단짝',family:'가족',work:'콤비'};
 const CT_DESC={
   same:["판박이","거울","싱크로율 만렙"],
   gen:["찰떡","산소 같은","서로의 비타민"],
   ke:{ love:["밀당 고수","불꽃","톰과 제리"],
+       spouse:["애증의","웬수 같은","티격태격"],
        friend:["톰과 제리","투닥투닥","애증의"],
        family:["애증의","웬수 같은","티격태격"],
        work:["극과 극","환장의 티키타카","브레이크 없는"] }
@@ -1398,7 +1407,7 @@ function personForm(prefix,defName,withRel){
     <label class="f">MBTI <span style="color:var(--ink-faint)">(알면 성격까지 같이 봐요)</span></label>
     <select id="${prefix}_mbti">${mbtiOpts}</select>
     ${withRel?`<label class="f">누구랑 볼 궁합이에요? <span style="color:var(--ink-faint)">(결과 톤이 맞춰져요)</span></label>
-    <select id="${prefix}_rel"><option value="love">💗 연인·썸</option><option value="friend">🤝 친구</option><option value="family">👨‍👩‍👧 가족</option><option value="work">💼 직장</option></select>`:''}`;
+    <select id="${prefix}_rel"><option value="love">💗 연인·썸</option><option value="spouse">💍 배우자·부부</option><option value="friend">🤝 친구</option><option value="family">👨‍👩‍👧 가족</option><option value="work">💼 직장</option></select>`:''}`;
 }
 function setCal(prefix,c){
   const calEl=document.getElementById(prefix+'_cal'); if(!calEl) return;
@@ -1635,6 +1644,10 @@ function revealResult(){
   renderResult(window._inviter,b);
 }
 
+// 다른 관계로 다시 보기 — 이미 입력된 두 생일 재사용, 관계 톤만 바꿔 재생성(추가 입력 0)
+function reviewPillsHTML(curRel){ return REL_ORDER.filter(r=>r!==curRel).map(r=>`<button class="rpill" onclick="reView('${r}')">${REL_EMOJI[r]} ${REL_META[r].label}</button>`).join(''); }
+function reView(newRel){ const raw=window._pairRaw; if(!raw||!raw.a||!raw.b||!REL_META[newRel]) return; track('review',{rel:newRel});
+  const a=Object.assign({},raw.a,{rel:newRel}); renderResult(a, raw.b); window.scrollTo(0,0); }
 function renderResult(a,b){
   const A=saju(a), B=saju(b); A.name=hon(a.name,""); B.name=hon(b.name,""); A.mbti=a.mbti; B.mbti=b.mbti; A.sex=a.sex; B.sex=b.sex;
   const rel=(a&&REL_META[a.rel])?a.rel : ((b&&REL_META[b.rel])?b.rel:'love'); // A(첫화면)가 고른 관계 우선
@@ -1711,6 +1724,12 @@ function renderResult(a,b){
         <div class="tl">
           ${tl.map(m=>`<div class="tlrow"><div class="mo">${m.label}</div><div class="bar">${m.txt}</div><div class="tag ${m.kind}">${m.tag}</div></div>`).join("")}
         </div>
+      </div>
+
+      <div class="sec reviewsec">
+        <h3>💫 다른 관계로도 볼까요?</h3>
+        <div class="para" style="color:var(--ink-faint);margin-bottom:10px">두 사람 생일 그대로, 관계 톤만 바꿔서 다시 봐요</div>
+        <div class="reviewpills">${reviewPillsHTML(rel)}</div>
       </div>
 
       <div class="sec">
